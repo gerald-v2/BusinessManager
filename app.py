@@ -21,6 +21,9 @@ import api_handler
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'biz_program_secret_key_2026')
 
+# Register enumerate as a Jinja2 filter so templates can use: list | enumerate
+app.jinja_env.filters['enumerate'] = enumerate
+
 # ── DATA HELPERS ─────────────────────────────────────────────────────────────
 
 def _load_biz():
