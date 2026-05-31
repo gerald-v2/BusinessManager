@@ -1,0 +1,7 @@
+PLU,Product,Selling Price,Cost Price,Variant,Units,Total Sold
+0001,Iphone,$1200.00,$500.00,Red,24,26
+0002,Iphone,$1200.00,$500.00,White,40,0
+0003,Iphone,$1200.00,$500.00,Green,20,0
+1000,Ipad,$20000.00,$10000.00,White,50,0
+1100,Ipad,$20000.00,$10000.00,Red,57,3
+1200,Ipad,$20000.00,$10000.00,Green,75,0

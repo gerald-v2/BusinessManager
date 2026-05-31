@@ -1,0 +1,29 @@
+{
+    "House Of Stembii": [
+        {
+            "name": "Gerald",
+            "role": "Manager",
+            "salary": 492.0,
+            "permissions": [
+                "pos",
+                "crm"
+            ],
+            "username": "gerry.ny",
+            "password": "Coge2008"
+        },
+        {
+            "name": "Constantine",
+            "role": "Senior Manager",
+            "salary": 350.0,
+            "notes": "",
+            "username": "conny.ny",
+            "password": "Coge2008",
+            "permissions": [
+                "products",
+                "pos",
+                "crm",
+                "employees"
+            ]
+        }
+    ]
+}

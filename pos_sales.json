@@ -1,0 +1,181 @@
+{
+    "Apple": [
+        {
+            "date": "2026-05-10",
+            "time": "12:07",
+            "items": [
+                {
+                    "product": "Iphone",
+                    "variant": "Red",
+                    "plu": "0001",
+                    "qty": 12,
+                    "unit_price": 1200.0,
+                    "subtotal": 14400.0
+                }
+            ],
+            "subtotal": 14400.0,
+            "discount_pct": 0.0,
+            "discount_amt": 0.0,
+            "tax_pct": 1.48,
+            "tax_amt": 213.12,
+            "total": 14613.12,
+            "payment": "Cash"
+        },
+        {
+            "date": "2026-05-14",
+            "time": "12:34",
+            "items": [
+                {
+                    "plu": "0001",
+                    "product": "Iphone",
+                    "qty": 4,
+                    "subtotal": 4800.0,
+                    "unit_price": 1200.0,
+                    "variant": "Red"
+                },
+                {
+                    "plu": "1100",
+                    "product": "Ipad",
+                    "qty": 3,
+                    "subtotal": 60000.0,
+                    "unit_price": 20000.0,
+                    "variant": "Red"
+                }
+            ],
+            "subtotal": 64800.0,
+            "discount_pct": 0.0,
+            "discount_amt": 0.0,
+            "tax_pct": 0.0,
+            "tax_amt": 0.0,
+            "total": 64800.0,
+            "payment": "Mobile",
+            "payment_amount": 64800.0,
+            "change": 0.0,
+            "customer": null,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": false
+        }
+    ],
+    "House Of Stembii": [
+        {
+            "date": "2026-05-10",
+            "time": "12:31",
+            "items": [
+                {
+                    "product": "100Pcs Balloons",
+                    "variant": "White",
+                    "plu": "1001",
+                    "qty": 10,
+                    "unit_price": 100.0,
+                    "subtotal": 1000.0
+                },
+                {
+                    "product": "Lights",
+                    "variant": "Green",
+                    "plu": "0002",
+                    "qty": 3,
+                    "unit_price": 25.0,
+                    "subtotal": 75.0
+                }
+            ],
+            "subtotal": 1075.0,
+            "discount_pct": 0.0,
+            "discount_amt": 0.0,
+            "tax_pct": 15.2,
+            "tax_amt": 163.4,
+            "total": 1238.4,
+            "payment": "Card"
+        },
+        {
+            "date": "2026-05-10",
+            "time": "12:43",
+            "items": [
+                {
+                    "product": "100Pcs Balloons",
+                    "variant": "Red",
+                    "plu": "1000",
+                    "qty": 20,
+                    "unit_price": 100.0,
+                    "subtotal": 2000.0
+                },
+                {
+                    "product": "Lights",
+                    "variant": "Bue",
+                    "plu": "0001",
+                    "qty": 4,
+                    "unit_price": 25.0,
+                    "subtotal": 100.0
+                }
+            ],
+            "subtotal": 2100.0,
+            "discount_pct": 0.0,
+            "discount_amt": 0.0,
+            "tax_pct": 15.3,
+            "tax_amt": 321.3,
+            "total": 2421.3,
+            "payment": "Cash",
+            "customer": "Herald"
+        },
+        {
+            "date": "2026-05-10",
+            "time": "13:16",
+            "items": [
+                {
+                    "product": "100Pcs Balloons",
+                    "variant": "Royal Blue",
+                    "plu": "1003",
+                    "qty": 10,
+                    "unit_price": 100.0,
+                    "subtotal": 1000.0
+                },
+                {
+                    "product": "Lights",
+                    "variant": "Green",
+                    "plu": "0002",
+                    "qty": 7,
+                    "unit_price": 25.0,
+                    "subtotal": 175.0
+                }
+            ],
+            "subtotal": 1175.0,
+            "discount_pct": 0.0,
+            "discount_amt": 0.0,
+            "tax_pct": 20.0,
+            "tax_amt": 235.0,
+            "total": 1410.0,
+            "payment": "Cash",
+            "customer": "John"
+        },
+        {
+            "date": "2026-05-10",
+            "time": "13:18",
+            "items": [
+                {
+                    "product": "100Pcs Balloons",
+                    "variant": "Red",
+                    "plu": "1000",
+                    "qty": 20,
+                    "unit_price": 100.0,
+                    "subtotal": 2000.0
+                },
+                {
+                    "product": "Lights",
+                    "variant": "Bue",
+                    "plu": "0001",
+                    "qty": 4,
+                    "unit_price": 25.0,
+                    "subtotal": 100.0
+                }
+            ],
+            "subtotal": 2100.0,
+            "discount_pct": 30.0,
+            "discount_amt": 630.0,
+            "tax_pct": 15.0,
+            "tax_amt": 220.5,
+            "total": 1690.5,
+            "payment": "Cash",
+            "customer": "Herald"
+        }
+    ]
+}

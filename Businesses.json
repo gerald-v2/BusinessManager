@@ -1,0 +1,128 @@
+{
+    "House Of Stembii": {
+        "industry": "Party Shop",
+        "location": "Harare",
+        "targetcustomer": "Children",
+        "businessmail": "houseofstembii@gmail.com",
+        "products": {
+            "Lights": {
+                "Price": "$25.00",
+                "Cost": "$5.00",
+                "variants": [
+                    {
+                        "name": "Bue",
+                        "units": 2,
+                        "PLU": "0001",
+                        "sold": 8
+                    },
+                    {
+                        "name": "Green",
+                        "units": 0,
+                        "PLU": "0002",
+                        "sold": 15
+                    }
+                ]
+            },
+            "100Pcs Balloons": {
+                "Price": "$100.00",
+                "Cost": "$30.00",
+                "variants": [
+                    {
+                        "name": "Red",
+                        "units": 10,
+                        "PLU": "1000",
+                        "sold": 40
+                    },
+                    {
+                        "name": "White",
+                        "units": 30,
+                        "PLU": "1001",
+                        "sold": 10
+                    },
+                    {
+                        "name": "Emerald Green",
+                        "units": 35,
+                        "PLU": "1002",
+                        "sold": 0
+                    },
+                    {
+                        "name": "Royal Blue",
+                        "units": 35,
+                        "PLU": "1003",
+                        "sold": 10
+                    },
+                    {
+                        "name": "Baby Yellow",
+                        "units": 43,
+                        "PLU": "1004",
+                        "sold": 0
+                    }
+                ]
+            }
+        },
+        "currency": "RND",
+        "groups": {
+            "Decorations": [
+                "Lights"
+            ]
+        }
+    },
+    "Apple": {
+        "industry": "Technology",
+        "location": "United States",
+        "targetcustomer": "Young Adults",
+        "businessmail": "apple@gmail.com",
+        "currency": "RND",
+        "products": {
+            "Iphone": {
+                "Price": "$1200.00",
+                "Cost": "$500.00",
+                "variants": [
+                    {
+                        "name": "Red",
+                        "units": 24,
+                        "PLU": "0001",
+                        "sold": 26
+                    },
+                    {
+                        "name": "White",
+                        "units": 40,
+                        "PLU": "0002",
+                        "sold": 0
+                    },
+                    {
+                        "name": "Green",
+                        "units": 20,
+                        "PLU": "0003",
+                        "sold": 0
+                    }
+                ]
+            },
+            "Ipad": {
+                "Price": "$20000.00",
+                "Cost": "$10000.00",
+                "variants": [
+                    {
+                        "name": "White",
+                        "units": 50,
+                        "PLU": "1000",
+                        "sold": 0
+                    },
+                    {
+                        "name": "Red",
+                        "units": 57,
+                        "PLU": "1100",
+                        "sold": 3
+                    },
+                    {
+                        "name": "Green",
+                        "units": 75,
+                        "PLU": "1200",
+                        "sold": 0
+                    }
+                ]
+            }
+        },
+        "groups": {}
+    }
+}

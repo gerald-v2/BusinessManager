@@ -1,0 +1,12 @@
+{
+    "House Of Stembii": {
+        "Revenue": 6450.0,
+        "Costs": 6390.0,
+        "Profit": 60.0
+    },
+    "Apple": {
+        "Revenue": 64800.0,
+        "Costs": 0,
+        "Profit": 64800.0
+    }
+}

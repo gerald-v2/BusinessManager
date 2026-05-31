@@ -1,0 +1,8 @@
+PLU,Product,Selling Price,Cost Price,Variant,Units,Total Sold
+0001,Lights,$25.00,$5.00,Bue,2,8
+0002,Lights,$25.00,$5.00,Green,0,15
+1000,100Pcs Balloons,$100.00,$30.00,Red,10,40
+1001,100Pcs Balloons,$100.00,$30.00,White,30,10
+1002,100Pcs Balloons,$100.00,$30.00,Emerald Green,35,0
+1003,100Pcs Balloons,$100.00,$30.00,Royal Blue,35,10
+1004,100Pcs Balloons,$100.00,$30.00,Baby Yellow,43,0

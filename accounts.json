@@ -1,0 +1,21 @@
+{
+    "admin": {
+        "password": "Coge2008",
+        "role": "admin",
+        "businesses": []
+    },
+    "gerald.v2": {
+        "password": "coge2008",
+        "role": "business",
+        "businesses": [
+            "House Of Stembii"
+        ]
+    },
+    "gerald.szn": {
+        "password": "Coge2008",
+        "role": "business",
+        "businesses": [
+            "Apple"
+        ]
+    }
+}
