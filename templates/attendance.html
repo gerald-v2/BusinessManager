@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Attendance — {{ biz }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-clock me-2 text-primary"></i>Attendance — {{ biz }}</h4>
+  <a href="{{ url_for('employees_list', biz=biz) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-people me-1"></i>Employees</a>
+</div>
+
+<!-- Date selector -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="GET" class="d-flex align-items-center gap-3">
+      <label class="fw-semibold small mb-0">Date:</label>
+      <input type="date" name="date" class="form-control form-control-sm" value="{{ date_filter }}" style="width:180px">
+      <button class="btn btn-sm btn-primary">View</button>
+    </form>
+  </div>
+</div>
+
+<!-- Clock in/out -->
+<div class="row g-3 mb-4">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header fw-semibold text-success"><i class="bi bi-box-arrow-in-right me-2"></i>Clock In</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('clock_in', biz=biz) }}" class="row g-2">
+          <div class="col-5">
+            <select name="emp_name" class="form-select form-select-sm" required>
+              <option value="">Select employee…</option>
+              {% for emp in emps %}
+              <option value="{{ emp.name }}">{{ emp.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-4">
+            <input type="time" name="clock_time" class="form-control form-control-sm" placeholder="Now">
+          </div>
+          <div class="col-3">
+            <button class="btn btn-sm btn-success w-100">Clock In</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header fw-semibold text-danger"><i class="bi bi-box-arrow-right me-2"></i>Clock Out</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('clock_out', biz=biz) }}" class="row g-2">
+          <div class="col-5">
+            <select name="emp_name" class="form-select form-select-sm" required>
+              <option value="">Select employee…</option>
+              {% for emp in emps %}
+              <option value="{{ emp.name }}">{{ emp.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-4">
+            <input type="time" name="clock_time" class="form-control form-control-sm" placeholder="Now">
+          </div>
+          <div class="col-3">
+            <button class="btn btn-sm btn-danger w-100">Clock Out</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Records for selected date -->
+<div class="card">
+  <div class="card-header fw-semibold">Records for {{ date_filter }}</div>
+  <div class="card-body p-0">
+    {% if records %}
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th class="ps-3">Employee</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for rec in records %}
+        <tr>
+          <td class="ps-3 fw-semibold">{{ rec.employee }}</td>
+          <td class="small">{{ rec.clock_in }}</td>
+          <td class="small">{{ rec.clock_out or '—' }}</td>
+          <td class="small">{% if rec.hours %}{{ rec.hours }}h{% else %}—{% endif %}</td>
+          <td>
+            {% if rec.clock_out %}
+            <span class="badge bg-secondary">Done</span>
+            {% else %}
+            <span class="badge bg-success">Clocked In</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-clock-history fs-2 d-block mb-2"></i>No attendance records for {{ date_filter }}.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

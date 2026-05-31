@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Sales History — {{ biz }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Sales History — {{ biz }}</h4>
+  <a href="{{ url_for('pos', biz=biz) }}" class="btn btn-sm btn-success"><i class="bi bi-cart3 me-1"></i>POS</a>
+</div>
+
+{% if not sales %}
+<div class="card text-center py-5 text-muted">
+  <i class="bi bi-receipt fs-1 d-block mb-2"></i>No sales recorded yet.
+</div>
+{% else %}
+<!-- Summary stats -->
+{% set non_refunded = sales | selectattr('refunded', 'equalto', false) | list %}
+{% set total_rev = non_refunded | sum(attribute='total') %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-primary"><div class="lbl">Total Sales</div><div class="val">{{ sales | length }}</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-success"><div class="lbl">Revenue</div><div class="val">{{ sym }}{{ '%.2f'|format(total_rev) }}</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-warning text-dark"><div class="lbl">Refunded</div><div class="val">{{ sales | selectattr('refunded') | list | length }}</div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-secondary"><div class="lbl">With Customer</div><div class="val">{{ sales | selectattr('customer') | list | length }}</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">#</th>
+            <th>Date/Time</th>
+            <th>Items</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i, sale in sales | enumerate %}
+          <tr class="{% if sale.refunded %}text-muted{% endif %}">
+            <td class="ps-3 small text-muted">{{ i + 1 }}</td>
+            <td class="small">{{ sale.date }}<br><span class="text-muted">{{ sale.time }}</span></td>
+            <td class="small">
+              {% for item in sale.items[:2] %}
+              <div>{{ item.product }} ({{ item.variant }}) ×{{ item.qty }}</div>
+              {% endfor %}
+              {% if sale.items | length > 2 %}<div class="text-muted">+{{ sale.items | length - 2 }} more</div>{% endif %}
+            </td>
+            <td class="small">{{ sale.customer or '—' }}</td>
+            <td class="fw-semibold {% if sale.refunded %}text-decoration-line-through{% endif %}">
+              {{ sym }}{{ '%.2f'|format(sale.total) }}
+              {% if sale.discount_amt > 0 %}<br><span class="text-danger" style="font-size:.7rem">-{{ sym }}{{ '%.2f'|format(sale.discount_amt) }} disc</span>{% endif %}
+            </td>
+            <td class="small">{{ sale.payment }}</td>
+            <td>
+              {% if sale.refunded %}
+              <span class="badge bg-secondary">Refunded</span>
+              {% else %}
+              <span class="badge bg-success">Completed</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if not sale.refunded %}
+              <form method="POST" action="{{ url_for('pos_refund', biz=biz, display_idx=i) }}"
+                    onsubmit="return confirm('Process refund of {{ sym }}{{ \'%.2f\'|format(sale.total) }}?')">
+                <button class="btn btn-sm btn-outline-warning">Refund</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

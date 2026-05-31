@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Finance — {{ biz }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-4"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Finance — {{ biz }}</h4>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-success">
+      <div class="lbl"><i class="bi bi-arrow-up-circle me-1"></i>Revenue</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(revenue) }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-warning text-dark">
+      <div class="lbl"><i class="bi bi-arrow-down-circle me-1"></i>Recorded Costs</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(costs) }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-secondary">
+      <div class="lbl"><i class="bi bi-people me-1"></i>Monthly Payroll</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(payroll) }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card {% if profit >= 0 %}bg-primary{% else %}bg-danger{% endif %}">
+      <div class="lbl"><i class="bi bi-cash-coin me-1"></i>Net Profit</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(profit) }}</div>
+      <div class="lbl mt-1">{{ '%.1f'|format(margin) }}% margin</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Status -->
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Financial Status</div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2"><span class="text-muted">Revenue</span><strong>{{ sym }}{{ '%.2f'|format(revenue) }}</strong></div>
+        <div class="d-flex justify-content-between mb-2"><span class="text-muted">Recorded Costs</span><strong class="text-warning">{{ sym }}{{ '%.2f'|format(costs) }}</strong></div>
+        <div class="d-flex justify-content-between mb-2"><span class="text-muted">Payroll</span><strong class="text-secondary">{{ sym }}{{ '%.2f'|format(payroll) }}</strong></div>
+        <div class="d-flex justify-content-between mb-2"><span class="text-muted">Total Costs</span><strong class="text-danger">{{ sym }}{{ '%.2f'|format(total_costs) }}</strong></div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold fs-5">
+          <span>Net Profit</span>
+          <span class="{% if profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ sym }}{{ '%.2f'|format(profit) }}</span>
+        </div>
+        <div class="mt-2 text-center">
+          {% if profit > 0 %}
+          <span class="badge bg-success fs-6">PROFITABLE</span>
+          {% elif profit == 0 %}
+          <span class="badge bg-warning text-dark fs-6">BREAKING EVEN</span>
+          {% else %}
+          <span class="badge bg-danger fs-6">AT A LOSS</span>
+          {% endif %}
+        </div>
+        {% if revenue > 0 %}
+        <div class="mt-3">
+          <div class="d-flex justify-content-between small mb-1"><span>Profit Margin</span><span>{{ '%.1f'|format(margin) }}%</span></div>
+          <div class="progress" style="height:8px">
+            <div class="progress-bar {% if margin > 0 %}bg-success{% else %}bg-danger{% endif %}"
+                 style="width:{{ [margin|abs, 100]|min }}%"></div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Add cost -->
+    <div class="card">
+      <div class="card-header fw-semibold">Record a Cost</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('add_cost', biz=biz) }}">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Amount ({{ sym }})</label>
+            <input type="number" step="0.01" name="amount" class="form-control form-control-sm" placeholder="0.00" required min="0.01">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Description</label>
+            <input type="text" name="description" class="form-control form-control-sm" placeholder="e.g. Office rent, Supplies">
+          </div>
+          <button class="btn btn-warning btn-sm w-100">Record Cost</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exchange Rates -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header fw-semibold"><i class="bi bi-currency-exchange me-2"></i>Exchange Rates</div>
+      <div class="card-body">
+        <p class="text-muted small">Rates are used by the loyalty points system to convert local prices to USD for point calculation.</p>
+        {% if rates %}
+        <table class="table table-sm mb-3">
+          <thead class="table-light">
+            <tr><th>Pair</th><th>Rate</th></tr>
+          </thead>
+          <tbody>
+            {% for key, rate in rates.items() %}
+            <tr>
+              <td><span class="plu-badge">{{ key.replace('_TO_', ' → ') }}</span></td>
+              <td>{{ rate }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted small">No exchange rates saved. Add one below if your business currency is not USD.</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('add_exchange_rate', biz=biz) }}" class="row g-2 align-items-end">
+          <div class="col-3">
+            <label class="form-label small fw-semibold">From</label>
+            <input type="text" name="from_curr" class="form-control form-control-sm" placeholder="{{ curr }}" value="{{ curr }}" maxlength="5">
+          </div>
+          <div class="col-3">
+            <label class="form-label small fw-semibold">To</label>
+            <input type="text" name="to_curr" class="form-control form-control-sm" placeholder="USD" value="USD" maxlength="5">
+          </div>
+          <div class="col-4">
+            <label class="form-label small fw-semibold">Rate (1 From = ? To)</label>
+            <input type="number" step="0.000001" name="rate" class="form-control form-control-sm" placeholder="1.0" required min="0.000001">
+          </div>
+          <div class="col-2">
+            <button class="btn btn-outline-primary btn-sm w-100">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

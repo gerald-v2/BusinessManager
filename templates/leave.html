@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Leave Management — {{ biz }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-calendar2-check me-2 text-primary"></i>Leave Management — {{ biz }}</h4>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('employees_list', biz=biz) }}" class="btn btn-sm btn-outline-secondary">Employees</a>
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#requestLeaveModal"><i class="bi bi-plus me-1"></i>Request Leave</button>
+  </div>
+</div>
+
+{% if not leaves %}
+<div class="card text-center py-5 text-muted">
+  <i class="bi bi-calendar2-x fs-2 d-block mb-2"></i>No leave requests yet.
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="ps-3">Employee</th>
+          <th>Type</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Days</th>
+          <th>Reason</th>
+          <th>Applied</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, lv in leaves | enumerate %}
+        <tr>
+          <td class="ps-3 fw-semibold">{{ lv.employee }}</td>
+          <td><span class="badge bg-info text-dark">{{ lv.type }}</span></td>
+          <td class="small">{{ lv.start }}</td>
+          <td class="small">{{ lv.end }}</td>
+          <td>{{ lv.days }}</td>
+          <td class="small text-muted">{{ lv.reason or '—' }}</td>
+          <td class="small text-muted">{{ lv.applied }}</td>
+          <td>
+            {% if lv.status == 'Approved' %}<span class="badge bg-success">Approved</span>
+            {% elif lv.status == 'Rejected' %}<span class="badge bg-danger">Rejected</span>
+            {% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}
+          </td>
+          <td>
+            {% if lv.status == 'Pending' and is_manager(biz) %}
+            <form method="POST" class="d-inline">
+              <input type="hidden" name="leave_idx" value="{{ i }}">
+              <input type="hidden" name="emp_name" value="{{ lv.employee }}">
+              <button name="action" value="approve" class="btn btn-sm btn-success">✓</button>
+              <button name="action" value="reject" class="btn btn-sm btn-danger">✗</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Request Leave Modal -->
+<div class="modal fade" id="requestLeaveModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Request Leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <form method="POST">
+        <input type="hidden" name="action" value="request">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Employee</label>
+            <select name="emp_name" class="form-select" required>
+              <option value="">Select…</option>
+              {% for emp in emps %}<option value="{{ emp.name }}">{{ emp.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Leave Type</label>
+            <select name="leave_type" class="form-select">
+              <option>Annual</option>
+              <option>Sick</option>
+              <option>Maternity</option>
+              <option>Paternity</option>
+              <option>Emergency</option>
+              <option>Unpaid</option>
+            </select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col">
+              <label class="form-label fw-semibold">From</label>
+              <input type="date" name="start_date" class="form-control" required>
+            </div>
+            <div class="col">
+              <label class="form-label fw-semibold">To</label>
+              <input type="date" name="end_date" class="form-control" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Reason</label>
+            <textarea name="reason" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

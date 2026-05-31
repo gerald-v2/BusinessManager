@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Receipt — {{ biz }}{% endblock %}
+{% block content %}
+<div class="text-center mb-3">
+  <div class="text-success fs-1"><i class="bi bi-check-circle-fill"></i></div>
+  <h4 class="fw-bold">Sale Complete!</h4>
+</div>
+
+<div class="receipt mx-auto mb-4">
+  <div class="text-center mb-3">
+    <div class="r-title">{{ biz }}</div>
+    <div class="small text-muted">{{ sale.date }} · {{ sale.time }}</div>
+  </div>
+  <hr>
+  {% for item in cart_items %}
+  <div class="d-flex justify-content-between small mb-1">
+    <span>{{ item.product }} ({{ item.variant }}) ×{{ item.qty }}</span>
+    <span>{{ sym }}{{ '%.2f'|format(item.subtotal) }}</span>
+  </div>
+  {% endfor %}
+  <hr>
+  <div class="d-flex justify-content-between small"><span>Subtotal</span><span>{{ sym }}{{ '%.2f'|format(sale.subtotal) }}</span></div>
+  {% if sale.discount_amt > 0 %}
+  <div class="d-flex justify-content-between small text-danger"><span>Discount ({{ sale.discount_pct }}%)</span><span>-{{ sym }}{{ '%.2f'|format(sale.discount_amt) }}</span></div>
+  {% endif %}
+  {% if sale.tax_amt > 0 %}
+  <div class="d-flex justify-content-between small text-muted"><span>Tax ({{ sale.tax_pct }}%)</span><span>{{ sym }}{{ '%.2f'|format(sale.tax_amt) }}</span></div>
+  {% endif %}
+  <hr>
+  <div class="d-flex justify-content-between fw-bold"><span>TOTAL</span><span>{{ sym }}{{ '%.2f'|format(sale.total) }}</span></div>
+  <div class="d-flex justify-content-between small text-muted mt-1"><span>{{ sale.payment }}</span><span>{{ sym }}{{ '%.2f'|format(sale.payment_amount) }}</span></div>
+  {% if sale.change > 0 %}
+  <div class="d-flex justify-content-between small"><span>Change</span><span>{{ sym }}{{ '%.2f'|format(sale.change) }}</span></div>
+  {% endif %}
+  {% if customer %}
+  <hr>
+  <div class="small">
+    <div class="fw-semibold">{{ customer.name }}</div>
+    {% if points_redeemed > 0 %}<div class="text-danger">Points used: -{{ points_redeemed }} pts</div>{% endif %}
+    {% if points_earned > 0 %}<div class="text-success">Points earned: +{{ points_earned }} pts</div>{% endif %}
+    <div class="text-muted">Balance: {{ customer.get('points',0) }} pts</div>
+  </div>
+  {% endif %}
+  <hr>
+  <div class="text-center small text-muted">Thank you for your purchase!</div>
+</div>
+
+<div class="d-flex justify-content-center gap-3">
+  <a href="{{ url_for('pos', biz=biz) }}" class="btn btn-primary"><i class="bi bi-cart-plus me-2"></i>New Sale</a>
+  <a href="{{ url_for('biz_dashboard', biz=biz) }}" class="btn btn-outline-secondary"><i class="bi bi-house me-2"></i>Dashboard</a>
+  <a href="{{ url_for('pos_sales', biz=biz) }}" class="btn btn-outline-secondary"><i class="bi bi-clock-history me-2"></i>Sales History</a>
+</div>
+{% endblock %}

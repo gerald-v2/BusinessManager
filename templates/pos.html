@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}POS — {{ biz }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0"><i class="bi bi-cart3 me-2 text-success"></i>Point of Sale — {{ biz }}</h4>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('pos_sales', biz=biz) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history me-1"></i>Sales History</a>
+    {% if cart %}
+    <form method="POST" action="{{ url_for('pos_clear', biz=biz) }}" onsubmit="return confirm('Clear cart?')">
+      <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Clear</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left: add items -->
+  <div class="col-lg-7">
+    <!-- PLU lookup -->
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-upc-scan me-2"></i>Add by PLU Code</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('pos_lookup', biz=biz) }}" class="row g-2">
+          <div class="col">
+            <input type="text" name="plu" class="form-control" placeholder="Scan or type PLU code" autofocus required>
+          </div>
+          <div class="col-3">
+            <input type="number" name="qty" class="form-control" value="1" min="1" placeholder="Qty">
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-success"><i class="bi bi-plus-lg"></i></button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Browse products -->
+    <div class="card mb-3">
+      <div class="card-header" role="button" data-bs-toggle="collapse" data-bs-target="#browsePanel">
+        <i class="bi bi-grid me-2"></i>Browse Products <i class="bi bi-chevron-down float-end"></i>
+      </div>
+      <div class="collapse" id="browsePanel">
+        <div class="card-body p-2">
+          {% if products %}
+          <div class="accordion" id="productAccordion">
+            {% for p_name, details in products.items() %}
+            {% if details.variants %}
+            <div class="accordion-item border-0 mb-1">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed py-2 px-3 rounded" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#prod{{ loop.index }}"
+                        style="background:#f8f9fa;font-size:.9rem">
+                  {{ p_name }}
+                  <span class="badge bg-success ms-2">{{ sym }}{{ details.get('Price','$0').replace('$','') }}</span>
+                </button>
+              </h2>
+              <div id="prod{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#productAccordion">
+                <div class="accordion-body p-2">
+                  {% for v in details.variants %}
+                  {% if v.units > 0 %}
+                  <form method="POST" action="{{ url_for('pos_add_browse', biz=biz) }}"
+                        class="d-flex align-items-center gap-2 mb-1">
+                    <input type="hidden" name="product" value="{{ p_name }}">
+                    <input type="hidden" name="variant" value="{{ v.name }}">
+                    <input type="hidden" name="plu" value="{{ v.PLU }}">
+                    <input type="hidden" name="price" value="{{ details.get('Price','$0').replace('$','') }}">
+                    <input type="hidden" name="stock" value="{{ v.units }}">
+                    <span class="plu-badge me-1">{{ v.PLU }}</span>
+                    <span class="flex-grow-1 small">{{ v.name }}</span>
+                    <span class="text-muted small">{{ v.units }} left</span>
+                    <input type="number" name="qty" class="form-control form-control-sm" value="1" min="1" max="{{ v.units }}" style="width:65px">
+                    <button class="btn btn-sm btn-success"><i class="bi bi-plus"></i></button>
+                  </form>
+                  {% else %}
+                  <div class="d-flex align-items-center gap-2 mb-1 text-muted small">
+                    <span class="plu-badge me-1">{{ v.PLU }}</span>
+                    <span class="flex-grow-1">{{ v.name }}</span>
+                    <span class="badge bg-danger">Out of stock</span>
+                  </div>
+                  {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted small text-center py-3">No products. Add some in the Products section first.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Link customer -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-person-circle me-2"></i>Customer (optional)</div>
+      <div class="card-body">
+        {% if active_customer %}
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <strong>{{ active_customer.name }}</strong>
+            {% if pts_enabled %}
+            <span class="badge bg-warning text-dark ms-2">{{ active_customer.get('points',0) }} pts</span>
+            {% if tier %}<span class="tier-pill bg-primary text-white ms-1">{{ tier.label }} — {{ tier.discount_pct }}% off</span>{% endif %}
+            {% endif %}
+            <div class="text-muted small">{{ active_customer.get('phone') or '' }}</div>
+          </div>
+          <form method="POST" action="{{ url_for('pos_link_customer', biz=biz) }}">
+            <input type="hidden" name="query" value="">
+            <button class="btn btn-sm btn-outline-secondary">Unlink</button>
+          </form>
+        </div>
+        {% else %}
+        <form method="POST" action="{{ url_for('pos_link_customer', biz=biz) }}" class="row g-2">
+          <div class="col"><input type="text" name="query" class="form-control form-control-sm" placeholder="Search customer by name or phone"></div>
+          <div class="col-auto"><button class="btn btn-sm btn-outline-primary">Link</button></div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: cart -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header fw-semibold"><i class="bi bi-receipt me-2 text-primary"></i>Cart</div>
+      <div class="card-body p-0">
+        {% if cart %}
+        <table class="table mb-0 cart-row">
+          <thead class="table-light">
+            <tr><th class="ps-3">Item</th><th class="text-center">Qty</th><th class="text-end">Total</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for plu, item in cart.items() %}
+            <tr>
+              <td class="ps-3">
+                <div class="small fw-semibold">{{ item.product }}</div>
+                <div class="text-muted" style="font-size:.75rem">{{ item.variant }} · <span class="plu-badge">{{ plu }}</span></div>
+              </td>
+              <td class="text-center">{{ item.qty }}</td>
+              <td class="text-end fw-semibold">{{ sym }}{{ '%.2f'|format(item.subtotal) }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('pos_remove', biz=biz, plu=plu) }}">
+                  <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-x-lg"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="px-3 py-2 border-top d-flex justify-content-between fw-bold">
+          <span>Subtotal</span><span>{{ sym }}{{ '%.2f'|format(subtotal) }}</span>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-cart-x fs-2 d-block mb-2"></i>Cart is empty
+        </div>
+        {% endif %}
+      </div>
+      {% if cart %}
+      <div class="card-footer">
+        <a href="{{ url_for('pos_checkout', biz=biz) }}" class="btn btn-success w-100 fw-semibold">
+          <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
