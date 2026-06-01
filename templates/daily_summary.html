@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Daily Report — {{ biz }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <a href="{{ url_for('biz_dashboard', biz=biz) }}" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+    <h4 class="fw-bold mb-0 mt-1"><i class="bi bi-file-earmark-bar-graph me-2" style="color:var(--gold)"></i>Daily Business Report</h4>
+    <small class="text-muted">{{ today }}</small>
+  </div>
+  <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+</div>
+
+<!-- Today vs Yesterday -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-success">
+      <div class="lbl"><i class="bi bi-graph-up me-1"></i>Today's Revenue</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(today_rev) }}</div>
+      {% if rev_change is not none %}
+      <div style="font-size:0.75rem;margin-top:0.3rem;opacity:0.85">
+        {% if rev_change >= 0 %}<i class="bi bi-arrow-up-short"></i>+{{ '%.1f'|format(rev_change) }}%
+        {% else %}<i class="bi bi-arrow-down-short"></i>{{ '%.1f'|format(rev_change) }}%{% endif %}
+        vs yesterday
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-secondary">
+      <div class="lbl"><i class="bi bi-receipt me-1"></i>Transactions Today</div>
+      <div class="val">{{ today_count }}</div>
+      <div style="font-size:0.75rem;margin-top:0.3rem;opacity:0.75">Yesterday: {{ yest_count }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card {% if profit >= 0 %}bg-primary{% else %}bg-danger{% endif %}">
+      <div class="lbl"><i class="bi bi-cash-coin me-1"></i>Net Profit (Month)</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(profit) }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-warning">
+      <div class="lbl"><i class="bi bi-coin me-1"></i>Monthly Revenue</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(revenue) }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Top products -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-trophy-fill me-2" style="color:var(--gold)"></i>Top Products Today</div>
+      <div class="card-body p-0">
+        {% if top_products %}
+        <ul class="list-group list-group-flush">
+          {% for name, total in top_products %}
+          <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+            <span class="small fw-semibold">{{ name }}</span>
+            <span class="badge bg-success">{{ sym }}{{ '%.2f'|format(total) }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center text-muted py-4 small"><i class="bi bi-cart-x fs-2 d-block mb-2"></i>No sales today yet</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Low stock -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Low Stock Items</div>
+      <div class="card-body p-0">
+        {% if low_stock %}
+        <ul class="list-group list-group-flush">
+          {% for item in low_stock %}
+          <li class="list-group-item low-stock-row d-flex justify-content-between align-items-center py-2 px-3">
+            <span class="small">{{ item.product }} <span class="text-muted">({{ item.variant }})</span></span>
+            <span class="badge bg-danger">{{ item.units }} left</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center text-muted py-4 small"><i class="bi bi-check-circle-fill text-success fs-2 d-block mb-2"></i>All stock healthy</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Birthdays -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><span style="font-size:1rem">🎂</span><span class="ms-2">Upcoming Birthdays</span></div>
+      <div class="card-body p-0">
+        {% if birthday_alerts %}
+        <ul class="list-group list-group-flush">
+          {% for b in birthday_alerts %}
+          <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+            <div>
+              <div class="fw-semibold small">{{ b.name }}</div>
+              {% if b.phone %}<div class="text-muted" style="font-size:.75rem">{{ b.phone }}</div>{% endif %}
+            </div>
+            <span class="badge bg-warning">{{ 'Today! 🎂' if b.days_until == 0 else 'In ' ~ b.days_until ~ ' day' ~ ('s' if b.days_until > 1 else '') }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center text-muted py-4 small"><span style="font-size:1.5rem;display:block">🎈</span>No birthdays this week</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Finance summary -->
+<div class="card mt-4">
+  <div class="card-header"><i class="bi bi-graph-up-arrow me-2" style="color:var(--gold)"></i>Monthly Finance Summary</div>
+  <div class="card-body">
+    <div class="row g-3 text-center">
+      <div class="col-4">
+        <div class="text-muted small mb-1">Revenue</div>
+        <div class="fw-bold text-success">{{ sym }}{{ '%.2f'|format(revenue) }}</div>
+      </div>
+      <div class="col-4">
+        <div class="text-muted small mb-1">Total Costs</div>
+        <div class="fw-bold text-danger">{{ sym }}{{ '%.2f'|format(costs) }}</div>
+      </div>
+      <div class="col-4">
+        <div class="text-muted small mb-1">Net Profit</div>
+        <div class="fw-bold {% if profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ sym }}{{ '%.2f'|format(profit) }}</div>
+      </div>
+    </div>
+    <div class="mt-3">
+      {% set margin = (profit / revenue * 100) if revenue > 0 else 0 %}
+      <div class="d-flex justify-content-between small text-muted mb-1">
+        <span>Profit Margin</span><span>{{ '%.1f'|format(margin) }}%</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar {% if margin < 0 %}bg-danger{% endif %}" style="width:{{ [margin|abs, 100]|min }}%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

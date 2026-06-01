@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Checkout — {{ biz }}{% endblock %}
+{% block content %}
+<div class="mb-3">
+  <a href="{{ url_for('pos', biz=biz) }}" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>Back to POS</a>
+</div>
+<h4 class="fw-bold mb-4"><i class="bi bi-credit-card me-2 text-success"></i>Checkout — {{ biz }}</h4>
+
+<div class="row g-3">
+  <!-- Order summary -->
+  <div class="col-md-5">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Order Summary</div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <tbody>
+            {% for item in cart.values() %}
+            <tr>
+              <td class="ps-3 small">{{ item.product }} <span class="text-muted">({{ item.variant }})</span></td>
+              <td class="text-muted small">×{{ item.qty }}</td>
+              <td class="text-end pe-3 fw-semibold small">{{ sym }}{{ '%.2f'|format(item.subtotal) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="px-3 py-2 border-top d-flex justify-content-between fw-bold">
+          <span>Subtotal</span><span>{{ sym }}{{ '%.2f'|format(subtotal) }}</span>
+        </div>
+      </div>
+    </div>
+    {% if active_customer %}
+    <div class="card">
+      <div class="card-body py-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-person-circle text-primary fs-4"></i>
+          <div>
+            <div class="fw-semibold">{{ active_customer.name }}</div>
+            {% if pts_enabled %}
+            <div class="small text-muted">{{ active_customer.get('points',0) }} pts
+              {% if tier %} · <span class="text-primary">{{ tier.label }}: {{ tier.discount_pct }}% off</span>{% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Payment form -->
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header fw-semibold">Payment Details</div>
+      <div class="card-body">
+        <form method="POST">
+          <!-- Discount -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Discount</label>
+            {% if active_customer and pts_enabled and tier %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="use_points" value="yes" id="usePoints"
+                     onclick="document.getElementById('manualDisc').disabled=true;document.getElementById('discAmt').disabled=true">
+              <label class="form-check-label" for="usePoints">
+                Use loyalty tier discount — <strong>{{ tier.discount_pct }}%</strong> off
+                <span class="badge bg-warning text-dark ms-1">{{ tier.label }}</span>
+              </label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="use_points" value="no" id="noPoints" checked
+                     onclick="document.getElementById('manualDisc').disabled=false;document.getElementById('discAmt').disabled=false">
+              <label class="form-check-label" for="noPoints">Manual discount</label>
+            </div>
+            {% else %}
+            <input type="hidden" name="use_points" value="no">
+            {% endif %}
+            <div class="input-group">
+              <input type="number" name="manual_discount_pct" id="manualDisc" class="form-control" placeholder="0" min="0" max="100" step="0.1" value="0">
+              <span class="input-group-text">%</span>
+            </div>
+            <div class="form-text" id="discAmt"></div>
+          </div>
+
+          <!-- Tax -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tax</label>
+            <div class="input-group">
+              <input type="number" name="tax_pct" id="taxPct" class="form-control" placeholder="0" min="0" max="100" step="0.01" value="0">
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+
+          <!-- Totals preview -->
+          <div class="bg-light rounded p-3 mb-3">
+            <div class="d-flex justify-content-between small mb-1"><span>Subtotal</span><span id="prevSubtotal">{{ sym }}{{ '%.2f'|format(subtotal) }}</span></div>
+            <div class="d-flex justify-content-between small mb-1 text-danger"><span>Discount</span><span id="prevDisc">{{ sym }}0.00</span></div>
+            <div class="d-flex justify-content-between small mb-1 text-muted"><span>Tax</span><span id="prevTax">{{ sym }}0.00</span></div>
+            <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-1"><span>TOTAL</span><span id="prevTotal">{{ sym }}{{ '%.2f'|format(subtotal) }}</span></div>
+          </div>
+
+          <!-- Payment method -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Payment Method</label>
+            <select name="payment_method" id="payMethod" class="form-select" onchange="toggleCash()">
+              <option value="Cash">Cash</option>
+              <option value="Card">Card</option>
+              <option value="Transfer">Bank Transfer</option>
+              <option value="Mobile">Mobile Money</option>
+            </select>
+          </div>
+
+          <!-- Multi-currency toggle -->
+          {% if alt_currency %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Charge Currency</label>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm flex-grow-1 {% if True %}btn-primary{% endif %}" id="btnMainCurr" onclick="setCurrency('main')">
+                {{ sym }} {{ biz_currency }}
+              </button>
+              <button type="button" class="btn btn-sm flex-grow-1 btn-outline-secondary" id="btnAltCurr" onclick="setCurrency('alt')">
+                {{ alt_sym }} {{ alt_currency }}
+              </button>
+            </div>
+            <div class="form-text mt-1" id="altRateNote">
+              Rate: 1 {{ biz_currency }} = {{ '%.4f'|format(alt_rate) }} {{ alt_currency }}
+            </div>
+            <input type="hidden" name="pay_currency" id="payCurrencyField" value="{{ biz_currency }}">
+          </div>
+          {% endif %}
+
+          <div class="mb-3" id="cashSection">
+            <label class="form-label fw-semibold">Amount Tendered (<span id="currLabel">{{ sym }}</span>)</label>
+            <input type="number" name="payment_amount" id="payAmt" class="form-control" step="0.01" min="0" placeholder="0.00">
+            <div class="form-text" id="changeDisplay"></div>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success btn-lg fw-bold">
+              <i class="bi bi-check-circle me-2"></i>Complete Sale
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const sym = "{{ sym }}";
+const altSym = "{{ alt_sym or '' }}";
+const altRate = {{ alt_rate or 0 }};
+const subtotal = {{ subtotal }};
+let usingAlt = false;
+
+function getEffectiveTotal() {
+  const discEl = document.getElementById('manualDisc');
+  const usePtsEl = document.querySelector('input[name="use_points"]:checked');
+  let discPct = 0;
+  if (usePtsEl && usePtsEl.value === 'yes') {
+    discPct = {{ tier.discount_pct if tier else 0 }};
+  } else if (discEl && !discEl.disabled) {
+    discPct = parseFloat(discEl.value) || 0;
+  }
+  const taxPct = parseFloat(document.getElementById('taxPct').value) || 0;
+  const discAmt  = Math.round(subtotal * discPct / 100 * 100) / 100;
+  const afterDisc = subtotal - discAmt;
+  const taxAmt   = Math.round(afterDisc * taxPct / 100 * 100) / 100;
+  return Math.round((afterDisc + taxAmt) * 100) / 100;
+}
+
+function setCurrency(mode) {
+  usingAlt = (mode === 'alt');
+  document.getElementById('payCurrencyField').value = usingAlt ? '{{ alt_currency or "" }}' : '{{ biz_currency or "" }}';
+  document.getElementById('btnMainCurr').className = 'btn btn-sm flex-grow-1 ' + (usingAlt ? 'btn-outline-secondary' : 'btn-primary');
+  document.getElementById('btnAltCurr').className  = 'btn btn-sm flex-grow-1 ' + (usingAlt ? 'btn-primary' : 'btn-outline-secondary');
+  document.getElementById('currLabel').textContent = usingAlt ? altSym : sym;
+  calc();
+}
+
+function calc() {
+  const total = getEffectiveTotal();
+  const displayTotal = usingAlt && altRate ? total * altRate : total;
+  const displaySym   = usingAlt ? altSym : sym;
+  document.getElementById('prevDisc').textContent = '-' + sym + (subtotal - total + (parseFloat(document.getElementById('taxPct')?.value||0) > 0 ? 0 : 0)).toFixed(2);
+  // Recalculate properly
+  const discEl = document.getElementById('manualDisc');
+  const usePtsEl = document.querySelector('input[name="use_points"]:checked');
+  let discPct = 0;
+  if (usePtsEl && usePtsEl.value === 'yes') discPct = {{ tier.discount_pct if tier else 0 }};
+  else if (discEl && !discEl.disabled) discPct = parseFloat(discEl.value) || 0;
+  const taxPct  = parseFloat(document.getElementById('taxPct').value) || 0;
+  const discAmt = Math.round(subtotal * discPct / 100 * 100) / 100;
+  const afterDisc = subtotal - discAmt;
+  const taxAmt  = Math.round(afterDisc * taxPct / 100 * 100) / 100;
+  const baseTotal = Math.round((afterDisc + taxAmt) * 100) / 100;
+  document.getElementById('prevDisc').textContent = '-' + sym + discAmt.toFixed(2);
+  document.getElementById('prevTax').textContent  = sym + taxAmt.toFixed(2);
+  document.getElementById('prevTotal').textContent = usingAlt && altRate
+    ? sym + baseTotal.toFixed(2) + ' ≈ ' + altSym + (baseTotal * altRate).toFixed(2)
+    : sym + baseTotal.toFixed(2);
+  // Change calc
+  const payAmt = parseFloat(document.getElementById('payAmt')?.value) || 0;
+  const method = document.getElementById('payMethod').value;
+  const effectivePay = usingAlt && altRate ? payAmt / altRate : payAmt;
+  if (method === 'Cash' && payAmt > 0) {
+    const change = effectivePay - baseTotal;
+    const changeEl = document.getElementById('changeDisplay');
+    changeEl.textContent = change >= 0
+      ? 'Change: ' + (usingAlt && altRate ? altSym + (change * altRate).toFixed(2) : sym + change.toFixed(2))
+      : 'Insufficient amount';
+    changeEl.style.color = change >= 0 ? 'var(--success)' : 'var(--danger)';
+  }
+}
+
+function toggleCash() {
+  const isCash = document.getElementById('payMethod').value === 'Cash';
+  document.getElementById('cashSection').style.display = isCash ? '' : 'none';
+}
+
+document.querySelectorAll('input[name="manual_discount_pct"],#taxPct,#payAmt').forEach(el => el.addEventListener('input', calc));
+document.querySelectorAll('input[name="use_points"]').forEach(el => el.addEventListener('change', calc));
+document.getElementById('payMethod').addEventListener('change', () => { toggleCash(); calc(); });
+</script>
+{% endblock %}

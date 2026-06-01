@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}{{ biz }} — Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0">{{ biz }}</h4>
+    <small class="text-muted">{{ biz_data.get('industry','') }} · {{ biz_data.get('location','') }}</small>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    {% if session.user_type == 'biz_staff' %}
+    <span class="badge bg-info">Staff: {{ session.emp_name }}</span>
+    {% endif %}
+    <a href="{{ url_for('daily_summary', biz=biz) }}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-file-earmark-text me-1"></i>Daily Report
+    </a>
+  </div>
+</div>
+
+{% if birthday_alerts %}
+<div class="alert alert-warning py-2 mb-3 d-flex align-items-center gap-2" style="border-color:rgba(244,166,52,0.4);background:rgba(244,166,52,0.08)">
+  <span style="font-size:1.3rem">🎂</span>
+  <div class="small">
+    <strong>Birthday alert{{ 's' if birthday_alerts|length > 1 }}:</strong>
+    {% for b in birthday_alerts %}
+      <span class="ms-2">{{ b.name }} — <span class="text-warning fw-semibold">{{ b.label }}</span>{% if b.phone %} ({{ b.phone }}){% endif %}{% if not loop.last %},{% endif %}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if low_stock %}
+<div class="alert alert-danger py-2 mb-3 d-flex align-items-center gap-2" style="border-color:rgba(224,92,106,0.4);background:rgba(224,92,106,0.08)">
+  <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+  <div class="small">
+    <strong>{{ low_stock|length }} item{{ 's' if low_stock|length > 1 }} running low:</strong>
+    {% for item in low_stock[:4] %}
+      <span class="ms-2">{{ item.product }} ({{ item.variant }}) — <span class="text-danger fw-semibold">{{ item.units }} left</span>{% if not loop.last %},{% endif %}</span>
+    {% endfor %}
+    {% if low_stock|length > 4 %}<span class="ms-1 text-muted">+{{ low_stock|length - 4 }} more</span>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-success">
+      <div class="lbl"><i class="bi bi-graph-up me-1"></i>Revenue</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(revenue) }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-warning text-dark">
+      <div class="lbl"><i class="bi bi-receipt me-1"></i>Costs</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(costs + payroll) }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card {% if profit >= 0 %}bg-primary{% else %}bg-danger{% endif %}">
+      <div class="lbl"><i class="bi bi-cash-coin me-1"></i>Net Profit</div>
+      <div class="val">{{ sym }}{{ '%.2f'|format(profit) }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-secondary">
+      <div class="lbl"><i class="bi bi-box-seam me-1"></i>Products</div>
+      <div class="val">{{ products|length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Sales chart -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-bar-chart-fill me-2" style="color:var(--gold)"></i>Sales — Last {{ chart_days }} Days</span>
+    <div class="d-flex gap-1">
+      <a href="?chart_days=7"  class="btn btn-sm {% if chart_days == 7  %}btn-primary{% else %}btn-outline-secondary{% endif %}">7d</a>
+      <a href="?chart_days=30" class="btn btn-sm {% if chart_days == 30 %}btn-primary{% else %}btn-outline-secondary{% endif %}">30d</a>
+    </div>
+  </div>
+  <div class="card-body" style="height:200px;padding:1rem 1rem 0.5rem">
+    <canvas id="salesChart"></canvas>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Quick actions -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-lightning-fill me-2 text-warning"></i>Quick Actions</div>
+      <div class="card-body d-grid gap-2">
+        {% if can_access(biz, 'pos') %}
+        <a href="{{ url_for('pos', biz=biz) }}" class="btn btn-success"><i class="bi bi-cart3 me-2"></i>Open POS</a>
+        {% endif %}
+        {% if can_access(biz, 'products') %}
+        <a href="{{ url_for('products', biz=biz) }}" class="btn btn-outline-primary"><i class="bi bi-box-seam me-2"></i>Products</a>
+        {% endif %}
+        {% if can_access(biz, 'crm') %}
+        <a href="{{ url_for('crm', biz=biz) }}" class="btn btn-outline-info"><i class="bi bi-person-lines-fill me-2"></i>Customers</a>
+        {% endif %}
+        {% if can_access(biz, 'employees') %}
+        <a href="{{ url_for('attendance', biz=biz) }}" class="btn btn-outline-secondary"><i class="bi bi-clock me-2"></i>Attendance</a>
+        {% endif %}
+        <a href="{{ url_for('daily_summary', biz=biz) }}" class="btn btn-outline-primary"><i class="bi bi-file-earmark-bar-graph me-2"></i>Daily Report</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Birthday alerts card -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><span style="font-size:1rem">🎂</span><span class="ms-2">Upcoming Birthdays</span></div>
+      <div class="card-body p-0">
+        {% if birthday_alerts %}
+        <ul class="list-group list-group-flush">
+          {% for b in birthday_alerts %}
+          <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+            <div>
+              <div class="fw-semibold small">{{ b.name }}</div>
+              {% if b.phone %}<div class="text-muted" style="font-size:.75rem">{{ b.phone }}</div>{% endif %}
+            </div>
+            <span class="badge bg-warning">{{ b.label }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center text-muted py-4 small">
+          <span style="font-size:2rem;display:block;margin-bottom:0.5rem">🎈</span>
+          No birthdays in the next 7 days
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent sales -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-receipt me-2 text-primary"></i>Recent Sales</span>
+        {% if can_access(biz, 'pos') %}<a href="{{ url_for('pos_sales', biz=biz) }}" class="small text-primary">View all</a>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% if recent_sales %}
+        <ul class="list-group list-group-flush">
+          {% for sale in recent_sales %}
+          <li class="list-group-item py-2 px-3 d-flex justify-content-between align-items-center {% if sale.refunded %}text-muted{% endif %}">
+            <div class="small">
+              <div>{{ sale.date }} {{ sale.time }}</div>
+              {% if sale.customer %}<div class="text-muted">{{ sale.customer }}</div>{% endif %}
+            </div>
+            <div class="text-end">
+              <div class="fw-semibold {% if sale.refunded %}text-muted text-decoration-line-through{% endif %}">{{ sym }}{{ '%.2f'|format(sale.total) }}</div>
+              {% if sale.refunded %}<span class="badge bg-secondary" style="font-size:.65rem">Refunded</span>{% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center text-muted py-4 small"><i class="bi bi-cart-x fs-3 d-block mb-2"></i>No sales yet</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('salesChart').getContext('2d');
+const labels = {{ chart_labels | tojson }};
+const data   = {{ chart_data | tojson }};
+const maxVal = Math.max(...data, 1);
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      data,
+      backgroundColor: data.map(v => v > 0 ? 'rgba(201,168,76,0.7)' : 'rgba(255,255,255,0.05)'),
+      borderColor: data.map(v => v > 0 ? '#c9a84c' : 'transparent'),
+      borderWidth: 1,
+      borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      callbacks: { label: ctx => ' {{ sym }}' + ctx.parsed.y.toFixed(2) }
+    }},
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a8499', font: { size: 10 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a8499', font: { size: 10 },
+           callback: v => '{{ sym }}' + v.toFixed(0) }, beginAtZero: true }
+    }
+  }
+});
+</script>
+{% endblock %}
