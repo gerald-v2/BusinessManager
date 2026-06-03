@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Admin — BizManager{% endblock %}
+{% block content_unauth %}
+<div class="d-flex justify-content-center align-items-center" style="min-height:90vh">
+  <div class="w-100" style="max-width:380px">
+    <div class="text-center mb-4">
+      <i class="bi bi-shield-lock-fill text-danger" style="font-size:2.5rem"></i>
+      <h3 class="fw-bold mt-2">System Access</h3>
+      <p class="text-muted small">Authorized personnel only</p>
+    </div>
+    <div class="card shadow">
+      <div class="card-body p-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }} py-2 small">{{ msg }}</div>
+          {% endfor %}
+        {% endwith %}
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Admin username" required autofocus>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Password" required>
+          </div>
+          <button type="submit" class="btn btn-danger w-100 fw-semibold py-2">
+            <i class="bi bi-lock-fill me-2"></i>Access System
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
