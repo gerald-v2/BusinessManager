@@ -960,6 +960,71 @@ def pos_checkout(biz):
                            customer=updated_customer, cart_items=cart_items,
                            points_earned=points_earned, points_redeemed=points_redeemed)
 
+# ── OFFLINE SYNC API ──────────────────────────────────────────────────────────
+# Accepts queued cash sales made while offline (see static/offline-sync.js).
+# Scope: cash sales only, full amount, no discount/points/currency conversion —
+# those still require being online and go through the normal /pos/checkout flow.
+from flask import jsonify
+
+@app.route('/api/sync/sale', methods=['POST'])
+def api_sync_sale():
+    if not session.get('user_type'):
+        return jsonify({'error': 'not logged in'}), 401
+
+    data = request.get_json(silent=True) or {}
+    biz = data.get('biz')
+    items = data.get('items', [])
+
+    if not biz or session.get('biz') != biz:
+        if session.get('user_type') != 'system_admin':
+            return jsonify({'error': 'access denied'}), 403
+    if not items:
+        return jsonify({'error': 'no items'}), 400
+    if not _can_access(biz, 'pos'):
+        return jsonify({'error': 'access denied'}), 403
+
+    sym = _sym(biz)
+    sold_items = []
+    subtotal = 0.0
+
+    for item in items:
+        product = item.get('product')
+        variant = item.get('variant')
+        qty = int(item.get('qty', 1))
+        ok, result = pos_mod.record_sale(biz, product, variant, qty)
+        if not ok:
+            # Stock ran out between queuing offline and syncing now —
+            # skip this item but keep processing the rest of the sale.
+            continue
+        line_total = result
+        subtotal += line_total
+        sold_items.append({
+            'product': product, 'variant': variant, 'qty': qty,
+            'subtotal': line_total,
+        })
+
+    if not sold_items:
+        return jsonify({'error': 'no items could be sold (out of stock)'}), 409
+
+    sales = pos_mod.load_sales()
+    if biz not in sales:
+        sales[biz] = []
+    now = datetime.datetime.now()
+    sale_record = {
+        'date': now.strftime('%Y-%m-%d'), 'time': now.strftime('%H:%M'),
+        'items': sold_items,
+        'subtotal': subtotal, 'discount_pct': 0, 'discount_amt': 0,
+        'tax_pct': 0, 'tax_amt': 0,
+        'total': subtotal, 'payment': 'Cash',
+        'payment_amount': subtotal, 'change': 0.0,
+        'customer': None, 'points_earned': 0, 'points_redeemed': 0,
+        'refunded': False, 'synced_offline': True,
+    }
+    sales[biz].append(sale_record)
+    pos_mod.save_sales(sales)
+
+    return jsonify({'status': 'ok', 'total': subtotal, 'sym': sym}), 200
+
 @app.route('/biz/<biz>/pos/sales')
 def pos_sales(biz):
     r = _require_biz_access(biz)
