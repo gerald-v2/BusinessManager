@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+{% block title %}POS — {{ biz }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0"><i class="bi bi-cart3 me-2 text-success"></i>Point of Sale — {{ biz }}</h4>
+  <div class="d-flex align-items-center gap-2">
+    <span id="offlineSyncBadge" class="badge bg-warning text-dark" style="display:none"></span>
+    <span id="offlineIndicator" class="badge bg-secondary" style="display:none">
+      <i class="bi bi-wifi-off me-1"></i>Offline — prices/stock may be outdated, sales sync later
+    </span>
+    <a href="{{ url_for('pos_sales', biz=biz) }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-clock-history me-1"></i>Sales History
+    </a>
+    {% if cart %}
+    <form method="POST" action="{{ url_for('pos_clear', biz=biz) }}" onsubmit="return confirm('Clear cart?')">
+      <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Clear</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- LEFT: Products + PLU -->
+  <div class="col-lg-7">
+
+    <!-- Quick PLU scan -->
+    <div class="card mb-3">
+      <div class="card-header fw-semibold"><i class="bi bi-upc-scan me-2"></i>Quick Add by PLU / Barcode</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('pos_lookup', biz=biz) }}" class="row g-2 align-items-end">
+          <div class="col">
+            <input type="text" name="plu" class="form-control" placeholder="Scan or type PLU code" id="pluInput">
+          </div>
+          <div class="col-3">
+            <input type="number" name="qty" class="form-control" value="1" min="1" placeholder="Qty">
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-success px-3"><i class="bi bi-plus-lg"></i></button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Link customer -->
+    <div class="card mb-3">
+      <div class="card-header fw-semibold"><i class="bi bi-person-circle me-2"></i>Customer <span class="text-muted fw-normal small">(optional)</span></div>
+      <div class="card-body py-2">
+        {% if active_customer %}
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <strong>{{ active_customer.name }}</strong>
+            {% if pts_enabled %}
+            <span class="badge bg-warning text-dark ms-2">{{ active_customer.get('points',0) }} pts</span>
+            {% if tier %}<span class="badge bg-primary ms-1">{{ tier.label }} — {{ tier.discount_pct }}% off</span>{% endif %}
+            {% endif %}
+            <div class="text-muted small">{{ active_customer.get('phone') or '' }}</div>
+          </div>
+          <form method="POST" action="{{ url_for('pos_link_customer', biz=biz) }}">
+            <input type="hidden" name="query" value="">
+            <button class="btn btn-sm btn-outline-secondary">Unlink</button>
+          </form>
+        </div>
+        {% else %}
+        <form method="POST" action="{{ url_for('pos_link_customer', biz=biz) }}" class="row g-2">
+          <div class="col">
+            <input type="text" name="query" class="form-control form-control-sm" placeholder="Search by name or phone">
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-sm btn-outline-primary">Link</button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="card">
+      <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-grid me-2"></i>Products</span>
+        <input type="text" id="productSearch" class="form-control form-control-sm w-auto" placeholder="Search products…" style="max-width:180px">
+      </div>
+      <div class="card-body p-3">
+        {% if products %}
+        <div class="row g-3" id="productGrid">
+          {% for p_name, details in products.items() %}
+          {% if details.variants %}
+          <div class="col-6 col-md-4 product-tile" data-name="{{ p_name | lower }}">
+            <div class="card h-100 border product-card" style="cursor:pointer" onclick="openProductModal('{{ p_name }}')">
+              <!-- Product Image -->
+              <div class="product-img-wrap bg-light d-flex align-items-center justify-content-center" style="height:130px;border-radius:8px 8px 0 0;overflow:hidden">
+                {% if details.get('image') %}
+                  <img src="{{ details.image }}" alt="{{ p_name }}" style="width:100%;height:100%;object-fit:cover">
+                {% else %}
+                  <i class="bi bi-box-seam text-muted" style="font-size:2.5rem"></i>
+                {% endif %}
+              </div>
+              <div class="card-body p-2">
+                <div class="fw-semibold small text-truncate">{{ p_name }}</div>
+                <div class="text-success fw-bold">{{ sym }}{{ details.get('Price','0').replace('$','') }}</div>
+                <div class="text-muted" style="font-size:0.72rem">
+                  {{ details.variants | selectattr('units', 'gt', 0) | list | length }} variant(s) in stock
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-box-seam fs-2 d-block mb-2"></i>
+          No products yet. Add some in the Products section first.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Cart -->
+  <div class="col-lg-5">
+    <div class="card sticky-top" style="top:80px">
+      <div class="card-header fw-semibold"><i class="bi bi-receipt me-2 text-primary"></i>Cart</div>
+      <div class="card-body p-0">
+        {% if cart %}
+        <table class="table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Item</th>
+              <th class="text-center" style="width:50px">Qty</th>
+              <th class="text-end" style="width:80px">Total</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for plu, item in cart.items() %}
+            <tr>
+              <td class="ps-3">
+                <div class="small fw-semibold">{{ item.product }}</div>
+                <div class="text-muted" style="font-size:.72rem">{{ item.variant }}</div>
+              </td>
+              <td class="text-center small">{{ item.qty }}</td>
+              <td class="text-end fw-semibold small">{{ sym }}{{ '%.2f'|format(item.subtotal) }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('pos_remove', biz=biz, plu=plu) }}">
+                  <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-x-lg"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="px-3 py-2 border-top d-flex justify-content-between fw-bold">
+          <span>Subtotal</span><span>{{ sym }}{{ '%.2f'|format(subtotal) }}</span>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-cart-x fs-2 d-block mb-2"></i>Cart is empty<br>
+          <span class="small">Tap a product to add it</span>
+        </div>
+        {% endif %}
+      </div>
+      {% if cart %}
+      <div class="card-footer">
+        <a href="{{ url_for('pos_checkout', biz=biz) }}" class="btn btn-success w-100 fw-semibold">
+          <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── Product Modal ─────────────────────────────────────────────── -->
+<div class="modal fade" id="productModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="modalProductName"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Product image -->
+        <div id="modalImgWrap" class="text-center mb-3" style="display:none!important">
+          <img id="modalImg" src="" alt="" style="max-height:200px;max-width:100%;object-fit:contain;border-radius:8px">
+        </div>
+        <div id="modalNoImg" class="text-center mb-3 bg-light py-4 rounded">
+          <i class="bi bi-box-seam text-muted" style="font-size:3rem"></i>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Select Variant</label>
+          <div id="variantList" class="d-flex flex-wrap gap-2"></div>
+        </div>
+        <!-- Variant image shown when selected -->
+        <div id="variantImgWrap" class="text-center mb-2" style="display:none">
+          <img id="variantImg" src="" alt="" style="max-height:140px;border-radius:8px;object-fit:contain">
+        </div>
+        <div class="mb-3" id="stockInfo"></div>
+        <form method="POST" action="{{ url_for('pos_add_browse', biz=biz) }}" id="addToCartForm">
+          <input type="hidden" name="product" id="hiddenProduct">
+          <input type="hidden" name="variant" id="hiddenVariant">
+          <input type="hidden" name="plu" id="hiddenPlu">
+          <input type="hidden" name="price" id="hiddenPrice">
+          <input type="hidden" name="stock" id="hiddenStock">
+          <div class="d-flex align-items-center gap-3 mt-3">
+            <div class="d-flex align-items-center border rounded" style="width:120px">
+              <button type="button" class="btn btn-link px-3 text-dark" onclick="changeQty(-1)">−</button>
+              <input type="number" name="qty" id="modalQty" class="form-control border-0 text-center p-0 fw-bold" value="1" min="1" style="width:40px">
+              <button type="button" class="btn btn-link px-3 text-dark" onclick="changeQty(1)">+</button>
+            </div>
+            <button type="submit" class="btn btn-success flex-grow-1 fw-semibold" id="addBtn" disabled>
+              <i class="bi bi-cart-plus me-2"></i>Add to Cart
+            </button>
+          </div>
+        </form>
+        <button type="button" class="btn btn-outline-primary w-100 mt-2" id="quickCashBtn" disabled onclick="quickCashSale()">
+          <i class="bi bi-cash-coin me-2"></i>Quick Cash Sale <span class="text-muted small">(works offline)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Product data from Jinja
+const PRODUCTS = {
+  {% for p_name, details in products.items() %}
+  {{ p_name | tojson }}: {
+    price: {{ details.get('Price','$0').replace('$','') | float }},
+    image: {{ (details.get('image') or '') | tojson }},
+    variants: [
+      {% for v in details.variants %}
+      { name: {{ v.name | tojson }}, plu: {{ v.PLU | tojson }}, units: {{ v.units }}, image: {{ (v.get('image') or '') | tojson }} },
+      {% endfor %}
+    ]
+  },
+  {% endfor %}
+};
+
+let selectedVariant = null;
+let selectedProductName = null;
+
+function openProductModal(pName) {
+  const p = PRODUCTS[pName];
+  if (!p) return;
+
+  document.getElementById('modalProductName').textContent = pName;
+  document.getElementById('hiddenProduct').value = pName;
+  document.getElementById('hiddenPrice').value = p.price;
+  document.getElementById('modalQty').value = 1;
+  document.getElementById('addBtn').disabled = true;
+  selectedVariant = null;
+  selectedProductName = pName;
+  document.getElementById('quickCashBtn').disabled = true;
+
+  // Product-level image
+  const imgEl = document.getElementById('modalImg');
+  const imgWrap = document.getElementById('modalImgWrap');
+  const noImg = document.getElementById('modalNoImg');
+  if (p.image) {
+    imgEl.src = p.image;
+    imgWrap.style.display = 'block';
+    noImg.style.display = 'none';
+  } else {
+    imgWrap.style.display = 'none';
+    noImg.style.display = 'block';
+  }
+
+  // Hide variant image until chosen
+  document.getElementById('variantImgWrap').style.display = 'none';
+  document.getElementById('stockInfo').innerHTML = '';
+
+  // Build variant buttons
+  const list = document.getElementById('variantList');
+  list.innerHTML = '';
+  p.variants.forEach(v => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm ' + (v.units > 0 ? 'btn-outline-secondary' : 'btn-outline-danger');
+    btn.disabled = v.units === 0;
+    btn.innerHTML = `${v.name}${v.units === 0 ? ' <span class="badge bg-danger ms-1">Out</span>' : ''}`;
+    btn.onclick = () => selectVariant(pName, v, btn);
+    list.appendChild(btn);
+  });
+
+  new bootstrap.Modal(document.getElementById('productModal')).show();
+}
+
+function selectVariant(pName, v, btn) {
+  // Highlight selected
+  document.querySelectorAll('#variantList .btn').forEach(b => {
+    b.classList.remove('btn-success');
+    b.classList.add(b.disabled ? 'btn-outline-danger' : 'btn-outline-secondary');
+  });
+  btn.classList.remove('btn-outline-secondary');
+  btn.classList.add('btn-success');
+
+  selectedVariant = v;
+  selectedProductName = pName;
+  document.getElementById('hiddenVariant').value = v.name;
+  document.getElementById('hiddenPlu').value = v.plu;
+  document.getElementById('hiddenStock').value = v.units;
+  document.getElementById('modalQty').max = v.units;
+  document.getElementById('modalQty').value = 1;
+  document.getElementById('addBtn').disabled = false;
+  document.getElementById('quickCashBtn').disabled = false;
+
+  // Stock label
+  document.getElementById('stockInfo').innerHTML =
+    `<span class="badge bg-light text-dark border"><i class="bi bi-box me-1"></i>${v.units} in stock</span>`;
+
+  // Variant image
+  const vImgWrap = document.getElementById('variantImgWrap');
+  const vImg = document.getElementById('variantImg');
+  const pImg = PRODUCTS[pName].image;
+  const src = v.image || pImg;
+  if (src) {
+    vImg.src = src;
+    vImgWrap.style.display = 'block';
+    // Hide product-level image to avoid duplication
+    document.getElementById('modalImgWrap').style.display = 'none';
+    document.getElementById('modalNoImg').style.display = 'none';
+  } else {
+    vImgWrap.style.display = 'none';
+  }
+}
+
+function changeQty(delta) {
+  const input = document.getElementById('modalQty');
+  const max = parseInt(input.max) || 999;
+  let val = parseInt(input.value) + delta;
+  val = Math.max(1, Math.min(val, max));
+  input.value = val;
+}
+
+// Product search filter
+document.getElementById('productSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.product-tile').forEach(tile => {
+    tile.style.display = tile.dataset.name.includes(q) ? '' : 'none';
+  });
+});
+
+// Auto-focus PLU on page load
+document.getElementById('pluInput').focus();
+
+// ── Offline-first quick cash sale ───────────────────────────────────────────
+const BIZ_NAME = {{ biz | tojson }};
+
+async function quickCashSale() {
+  if (!selectedProductName || !selectedVariant) return;
+  const qty = parseInt(document.getElementById('modalQty').value) || 1;
+  const price = parseFloat(document.getElementById('hiddenPrice').value) || 0;
+  const item = {
+    product: selectedProductName,
+    variant: selectedVariant.name,
+    plu: selectedVariant.plu,
+    qty: qty,
+    subtotal: price * qty,
+  };
+
+  const btn = document.getElementById('quickCashBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Processing...';
+
+  if (navigator.onLine) {
+    // Try syncing immediately since we're online
+    try {
+      const resp = await fetch('/api/sync/sale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ biz: BIZ_NAME, items: [item] }),
+      });
+      if (resp.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+        alert('Sale recorded.');
+        location.reload();
+        return;
+      }
+      throw new Error('Sync failed, queueing offline instead');
+    } catch (e) {
+      // Fall through to offline queue below
+    }
+  }
+
+  // Offline (or sync failed) — queue locally
+  await window.offlineSync.queueSale(BIZ_NAME, [item], item.subtotal);
+  await window.offlineSync.updateSyncBadge();
+  bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+  alert('No connection — sale saved on this device and will sync automatically once you\'re back online.');
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-cash-coin me-2"></i>Quick Cash Sale (works offline)';
+}
+
+function updateOfflineIndicator() {
+  const el = document.getElementById('offlineIndicator');
+  if (!el) return;
+  el.style.display = navigator.onLine ? 'none' : 'inline-block';
+}
+window.addEventListener('online', updateOfflineIndicator);
+window.addEventListener('offline', updateOfflineIndicator);
+window.addEventListener('load', updateOfflineIndicator);
+</script>
+
+<script src="{{ url_for('static', filename='offline-sync.js') }}"></script>
+
+<style>
+.product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateY(-2px); transition: all .15s ease; }
+.product-card { transition: all .15s ease; border-radius: 10px !important; }
+</style>
+{% endblock %}
