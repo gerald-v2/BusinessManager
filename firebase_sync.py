@@ -77,6 +77,7 @@ def upload_all():
             try:
                 with open(fname) as f:
                     payload[_key(fname)] = json.load(f)
+                    print(f"[firebase_sync] Uploaded {fname}")
             except Exception as e:
                 print(f"[firebase_sync] Could not read {fname}: {e}")
     if not payload:
