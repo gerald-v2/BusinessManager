@@ -70,19 +70,22 @@ def download_all():
 
 
 def upload_all():
-    """Push all local JSON files to Firebase (merged, not a full overwrite)."""
     payload = {}
     for fname in JSON_FILES:
         if os.path.exists(fname):
             try:
                 with open(fname) as f:
                     payload[_key(fname)] = json.load(f)
-                    print(f"[firebase_sync] Uploaded {fname}")
             except Exception as e:
                 print(f"[firebase_sync] Could not read {fname}: {e}")
     if not payload:
+        print("[firebase_sync] Upload skipped: no local files found")
         return
     try:
-        requests.patch(f"{FIREBASE_URL}/.json", data=json.dumps(payload), timeout=20)
+        resp = requests.patch(f"{FIREBASE_URL}/.json", data=json.dumps(payload), timeout=20)
+        if resp.status_code == 200:
+            print(f"[firebase_sync] Upload OK — keys: {list(payload.keys())}")
+        else:
+            print(f"[firebase_sync] Upload FAILED: HTTP {resp.status_code} — {resp.text[:300]}")
     except Exception as e:
-        print(f"[firebase_sync] Upload failed: {e}")
+        print(f"[firebase_sync] Upload exception: {e}")
