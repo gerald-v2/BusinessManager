@@ -4,14 +4,14 @@
         "role": "admin",
         "businesses": []
     },
-    "gerald.v2": {
+    "gerald_v2": {
         "password": "coge2008",
         "role": "business",
         "businesses": [
             "House Of Stembii"
         ]
     },
-    "gerald.szn": {
+    "gerald_szn": {
         "password": "Coge2008",
         "role": "business",
         "businesses": [
