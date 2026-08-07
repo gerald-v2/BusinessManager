@@ -81,6 +81,13 @@ def upload_all():
     if not payload:
         print("[firebase_sync] Upload skipped: no local files found")
         return
+    all_bad = []
+    for key, value in payload.items():
+        bad = _find_bad_keys(value, key)
+        if bad:
+            all_bad.extend(bad)
+    if all_bad:
+        print(f"[firebase_sync] Invalid Firebase keys found: {all_bad}")
     try:
         resp = requests.patch(f"{FIREBASE_URL}/.json", data=json.dumps(payload), timeout=20)
         if resp.status_code == 200:
@@ -89,3 +96,18 @@ def upload_all():
             print(f"[firebase_sync] Upload FAILED: HTTP {resp.status_code} — {resp.text[:300]}")
     except Exception as e:
         print(f"[firebase_sync] Upload exception: {e}")
+
+_INVALID_KEY_CHARS = set('.$#[]')
+
+def _find_bad_keys(obj, path=""):
+    """Recursively find dict keys with characters Firebase rejects."""
+    bad = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if any(c in _INVALID_KEY_CHARS for c in k) or any(ord(c) < 32 for c in k):
+                bad.append(f"{path}/{k}")
+            bad.extend(_find_bad_keys(v, f"{path}/{k}"))
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            bad.extend(_find_bad_keys(v, f"{path}[{i}]"))
+    return bad
