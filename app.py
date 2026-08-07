@@ -1817,6 +1817,7 @@ def admin_businesses():
                 flash(f'"{name}" already exists.', 'warning')
             else:
                 bm.add_business(name, industry, location, target, email, currency)
+                firebase_sync.upload_all()
                 flash(f'"{name}" created.', 'success')
         elif action == 'delete':
             name = request.form.get('name', '').strip()
