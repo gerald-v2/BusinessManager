@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Marketing — {{ biz }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-2"><i class="bi bi-megaphone me-2 text-primary"></i>Marketing — {{ biz }}</h4>
+<p class="text-muted small mb-4">{{ biz_data.get('industry','') }} · Target: {{ biz_data.get('targetcustomer','') }} · {{ biz_data.get('location','') }}</p>
+
+<div class="row g-3">
+  <!-- AI Tools -->
+  <div class="col-md-7">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold"><i class="bi bi-robot me-2 text-primary"></i>AI Marketing Tools</div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Product <span class="fw-normal">(optional)</span></label>
+              <select name="product" class="form-select form-select-sm">
+                <option value="">— General / not product-specific —</option>
+                {% for p in products %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Promotion type</label>
+              <select name="promo_type" class="form-select form-select-sm">
+                {% for pt in promo_types %}
+                <option value="{{ pt }}">{{ pt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Tone</label>
+              <select name="tone" class="form-select form-select-sm">
+                {% for t in tones %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Platform <span class="fw-normal">(captions only)</span></label>
+              <select name="platform" class="form-select form-select-sm">
+                {% for pf in platforms %}
+                <option value="{{ pf }}">{{ pf }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <button type="submit" name="tool" value="email" class="btn btn-outline-primary w-100"><i class="bi bi-envelope me-2"></i>Generate Email</button>
+            </div>
+            <div class="col-6">
+              <button type="submit" name="tool" value="caption" class="btn btn-outline-info w-100"><i class="bi bi-chat-quote me-2"></i>Social Caption</button>
+            </div>
+            <div class="col-6">
+              <button type="submit" name="tool" value="image" class="btn btn-outline-success w-100"><i class="bi bi-image me-2"></i>Generate Image</button>
+            </div>
+            <div class="col-6">
+              <button type="submit" name="tool" value="plan" class="btn btn-outline-warning w-100"><i class="bi bi-map me-2"></i>Marketing Plan</button>
+            </div>
+          </div>
+        </form>
+
+        {% if result %}
+        <div class="border rounded p-3 bg-light">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="fw-semibold small">Generated Result</span>
+            <button class="btn btn-sm btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('aiResult').textContent)">
+              <i class="bi bi-clipboard"></i>
+            </button>
+          </div>
+          <pre id="aiResult" class="mb-0 small" style="white-space:pre-wrap">{{ result }}</pre>
+        </div>
+        {% endif %}
+
+        {% if image_url %}
+        <div class="border rounded p-3 bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-semibold small">Generated Image</span>
+            <a href="{{ image_url }}" download class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Download</a>
+          </div>
+          <img src="{{ image_url }}" class="img-fluid rounded" alt="Generated marketing image">
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sentiment log -->
+    <div class="card">
+      <div class="card-header fw-semibold"><i class="bi bi-chat-heart me-2 text-danger"></i>Customer Feedback Log</div>
+      <div class="card-body">
+        <form method="POST" class="row g-2 mb-3">
+          <input type="hidden" name="tool" value="sentiment">
+          <div class="col-8"><input type="text" name="review" class="form-control form-control-sm" placeholder="Customer review or feedback"></div>
+          <div class="col-2"><input type="number" step="0.1" name="rating" class="form-control form-control-sm" placeholder="Rating (1-5)" min="1" max="5"></div>
+          <div class="col-2"><button class="btn btn-sm btn-primary w-100">Log</button></div>
+        </form>
+        {% if avg_rating %}
+        <div class="mb-2 small">
+          Average rating: <strong>{{ avg_rating }}/5</strong>
+          {% for i in range(avg_rating | int) %}⭐{% endfor %}
+        </div>
+        {% endif %}
+        {% if sentiment %}
+        <div style="max-height:200px;overflow-y:auto">
+          {% for s in sentiment | reverse %}
+          <div class="border-bottom py-2 small">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">{{ s.date }}</span>
+              <span class="fw-semibold">{{ s.rating }}/5</span>
+            </div>
+            <div>{{ s.review }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted small">No feedback logged yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Business info summary -->
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header fw-semibold">Business Profile</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <div class="small text-muted mb-1">Business Name</div>
+          <div class="fw-semibold">{{ biz }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="small text-muted mb-1">Industry</div>
+          <div>{{ biz_data.get('industry','Not set') }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="small text-muted mb-1">Target Customers</div>
+          <div>{{ biz_data.get('targetcustomer','Not set') }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="small text-muted mb-1">Location</div>
+          <div>{{ biz_data.get('location','Not set') }}</div>
+        </div>
+        <div>
+          <div class="small text-muted mb-1">Business Email</div>
+          <div>{{ biz_data.get('businessmail','Not set') }}</div>
+        </div>
+      </div>
+    </div>
+
+    {% if avg_rating %}
+    <div class="card mt-3">
+      <div class="card-header fw-semibold">Rating Overview</div>
+      <div class="card-body text-center">
+        <div class="display-4 fw-bold text-warning">{{ avg_rating }}</div>
+        <div class="text-muted small">out of 5 · {{ sentiment | length }} reviews</div>
+        {% set pct = (avg_rating / 5 * 100) | int %}
+        <div class="progress mt-2" style="height:8px">
+          <div class="progress-bar bg-warning" style="width:{{ pct }}%"></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
