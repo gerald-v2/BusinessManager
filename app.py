@@ -8,9 +8,9 @@ import smtplib
 import threading
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import firebase_sync
 from dotenv import load_dotenv
 load_dotenv()
-import firebase_sync
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE_DIR)
