@@ -1619,20 +1619,25 @@ def marketing(biz):
     businesses = _load_biz()
     biz_data = businesses.get(biz, {})
     result = None
+    image_url = None
     import marketing as mkt
     if request.method == 'POST':
         tool = request.form.get('tool')
-        industry = biz_data.get('industry', '')
-        location = biz_data.get('location', '')
-        target = biz_data.get('targetcustomer', '')
-        prompts = {
-            'email': f"Write a professional marketing email for {biz}. They are in the {industry} industry targeting {target} customers, located in {location}.",
-            'caption': f"Create a social media caption for {biz}: specialises in {industry}, based in {location}, targets {target} customers. Keep it engaging and under 150 words.",
-            'image': f"Describe in detail a marketing image concept for {biz}: specialises in {industry}, located in {location}, targets {target}.",
-            'plan': f"Create a 3-month marketing plan for {biz} in the {industry} industry. Target: {target}. Location: {location}. Include channels, budget, and weekly actions.",
-        }
-        if tool in prompts:
-            result = api_handler.call_api(prompts[tool])
+        product = request.form.get('product', '').strip() or None
+        promo_type = request.form.get('promo_type', '').strip() or None
+        tone = request.form.get('tone', '').strip() or None
+        platform = request.form.get('platform', '').strip() or None
+
+        if tool in ('email', 'caption', 'plan'):
+            prompt = mkt.build_prompt(tool, biz, biz_data, product, promo_type, tone, platform)
+            result = api_handler.call_api(prompt)
+        elif tool == 'image':
+            prompt = mkt.build_prompt('image', biz, biz_data, product, promo_type, tone, platform)
+            img_bytes, mime_or_error = api_handler.call_gemini_image(prompt)
+            if img_bytes:
+                image_url = api_handler.save_generated_image(img_bytes, mime_or_error, biz)
+            else:
+                flash(mime_or_error, 'danger')
         elif tool == 'sentiment':
             review = request.form.get('review', '').strip()
             rating_str = request.form.get('rating', '').strip()
@@ -1652,8 +1657,12 @@ def marketing(biz):
                     flash('Invalid rating.', 'danger')
     sent_data = mkt._load_json(mkt.SENTIMENT_FILE).get(biz, [])
     avg_rating = round(sum(s['rating'] for s in sent_data) / len(sent_data), 2) if sent_data else None
+    products = list(biz_data.get('products', {}).keys())
     return render_template('marketing.html', biz=biz, biz_data=biz_data,
-                           result=result, sentiment=sent_data, avg_rating=avg_rating)
+                           result=result, image_url=image_url,
+                           products=products, promo_types=mkt.PROMO_TYPES,
+                           tones=mkt.TONES, platforms=mkt.PLATFORMS,
+                           sentiment=sent_data, avg_rating=avg_rating)
 
 # ── MANAGER SETTINGS ────────────────────────────────────────────────────────
 
@@ -1818,7 +1827,6 @@ def admin_businesses():
                 flash(f'"{name}" already exists.', 'warning')
             else:
                 bm.add_business(name, industry, location, target, email, currency)
-                firebase_sync.upload_all()
                 flash(f'"{name}" created.', 'success')
         elif action == 'delete':
             name = request.form.get('name', '').strip()
@@ -1831,6 +1839,16 @@ def admin_businesses():
 
 @app.route('/admin/accounts', methods=['GET', 'POST'])
 def admin_accounts():
+    """
+    System-admin screen for creating BUSINESS MANAGER accounts.
+
+    accounts.json is reserved exclusively for the system-admin login
+    (/admin/login) — it is never written to from here. Every account
+    created on this page is a manager/owner login for one business,
+    stored in business_accounts.json (the same store business-login,
+    password-reset, and manager-settings all read from), one manager
+    account per business.
+    """
     r = _require_login()
     if r:
         return r
@@ -1838,42 +1856,48 @@ def admin_accounts():
         flash('Admin access required.', 'danger')
         return redirect(url_for('dashboard'))
     businesses = _load_biz()
-    accounts = sys_login.load_accounts()
+    accounts = bl.load_business_accounts()          # {biz: {username, password, email?}}
+    unassigned = [b for b in businesses if b not in accounts]
+
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'create':
+            biz = request.form.get('business', '').strip()
             uname = request.form.get('username', '').strip().lower()
             pw = request.form.get('password', '').strip()
-            linked = request.form.getlist('businesses')
-            if not uname or not pw:
-                flash('Username and password required.', 'danger')
-            elif uname in accounts:
-                flash('Username already exists.', 'warning')
+            email = request.form.get('email', '').strip().lower()
+            if not biz or not uname or not pw:
+                flash('Business, username and password are required.', 'danger')
+            elif biz not in businesses:
+                flash('Select a valid business.', 'danger')
+            elif biz in accounts:
+                flash(f'"{biz}" already has a manager account. Use "Change Password" or delete it first.', 'warning')
+            elif any((a.get('username') or '').lower() == uname for a in accounts.values()):
+                flash('That username is already used by another business manager.', 'warning')
             else:
-                accounts[uname] = {'password': pw, 'role': 'business', 'businesses': linked}
-                sys_login.save_accounts(accounts)
+                accounts[biz] = {'username': uname, 'password': pw, 'email': email}
+                bl.save_business_accounts(accounts)
                 firebase_sync.upload_all()
-                flash(f'Account "{uname}" created.', 'success')
+                flash(f'Manager account created for "{biz}" (username: {uname}).', 'success')
         elif action == 'delete':
-            uname = request.form.get('username', '').strip()
-            if uname == 'admin':
-                flash('Cannot delete admin account.', 'danger')
-            elif uname in accounts:
-                del accounts[uname]
-                sys_login.save_accounts(accounts)
+            biz = request.form.get('business', '').strip()
+            if biz in accounts:
+                del accounts[biz]
+                bl.save_business_accounts(accounts)
                 firebase_sync.upload_all()
-                flash(f'Account "{uname}" deleted.', 'success')
+                flash(f'Manager account for "{biz}" deleted.', 'success')
         elif action == 'change_pw':
-            uname = request.form.get('username', '').strip()
+            biz = request.form.get('business', '').strip()
             new_pw = request.form.get('new_password', '').strip()
-            if uname in accounts and new_pw:
-                accounts[uname]['password'] = new_pw
-                sys_login.save_accounts(accounts)
+            if biz in accounts and new_pw:
+                accounts[biz]['password'] = new_pw
+                bl.save_business_accounts(accounts)
                 firebase_sync.upload_all()
-                flash(f'Password for "{uname}" updated.', 'success')
+                flash(f'Password for "{biz}" manager updated.', 'success')
         return redirect(url_for('admin_accounts'))
     return render_template('admin_accounts.html', accounts=accounts,
-                           businesses=list(businesses.keys()))
+                           businesses=list(businesses.keys()),
+                           unassigned_businesses=unassigned)
 
 # ── RUN ───────────────────────────────────────────────────────────────────────
 

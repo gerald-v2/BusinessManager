@@ -2,9 +2,10 @@
 {% block title %}Accounts — Admin{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>System Account Management</h4>
-  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAccountModal">
-    <i class="bi bi-plus me-1"></i>Create Account
+  <h4 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Business Manager Accounts</h4>
+  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAccountModal"
+          {% if not unassigned_businesses %}disabled title="Every business already has a manager account"{% endif %}>
+    <i class="bi bi-plus me-1"></i>Create Manager Account
   </button>
 </div>
 
@@ -13,49 +14,37 @@
     <table class="table table-hover mb-0">
       <thead class="table-light">
         <tr>
-          <th class="ps-3">Username</th>
-          <th>Role</th>
-          <th>Linked Businesses</th>
+          <th class="ps-3">Business</th>
+          <th>Manager Username</th>
+          <th>Recovery Email</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        {% for uname, acc in accounts.items() %}
+        {% for biz, acc in accounts.items() %}
         <tr>
-          <td class="ps-3 fw-semibold">{{ uname }}</td>
-          <td>
-            <span class="badge {% if acc.role == 'admin' %}bg-danger{% else %}bg-primary{% endif %}">
-              {{ acc.role }}
-            </span>
-          </td>
-          <td class="small">
-            {% if acc.get('businesses') %}
-              {% for b in acc.businesses %}
-              <span class="badge bg-light text-dark border me-1">{{ b }}</span>
-              {% endfor %}
-            {% else %}—{% endif %}
-          </td>
+          <td class="ps-3 fw-semibold">{{ biz }}</td>
+          <td><span class="badge bg-primary">{{ acc.username }}</span></td>
+          <td class="small text-muted">{{ acc.get('email') or '—' }}</td>
           <td class="text-end pe-3">
             <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="collapse"
                     data-bs-target="#changePw{{ loop.index }}">Change PW</button>
-            {% if acc.role != 'admin' %}
             <form method="POST" class="d-inline"
-                  onsubmit="return confirm('Delete account {{ uname }}?')">
+                  onsubmit="return confirm('Delete the manager account for {{ biz }}?')">
               <input type="hidden" name="action" value="delete">
-              <input type="hidden" name="username" value="{{ uname }}">
+              <input type="hidden" name="business" value="{{ biz }}">
               <button class="btn btn-sm btn-outline-danger">Delete</button>
             </form>
-            {% endif %}
           </td>
         </tr>
         <tr class="collapse" id="changePw{{ loop.index }}">
           <td colspan="4" class="bg-light">
             <form method="POST" class="row g-2 p-2 align-items-end">
               <input type="hidden" name="action" value="change_pw">
-              <input type="hidden" name="username" value="{{ uname }}">
+              <input type="hidden" name="business" value="{{ biz }}">
               <div class="col-auto">
                 <input type="password" name="new_password" class="form-control form-control-sm"
-                       placeholder="New password for {{ uname }}" required style="width:220px">
+                       placeholder="New password for {{ acc.username }}" required style="width:220px">
               </div>
               <div class="col-auto">
                 <button class="btn btn-sm btn-warning">Update Password</button>
@@ -63,38 +52,39 @@
             </form>
           </td>
         </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-4">No manager accounts yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- Create Account Modal -->
+<!-- Create Manager Account Modal -->
 <div class="modal fade" id="addAccountModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Create System Account</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">Create Business Manager Account</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form method="POST">
         <input type="hidden" name="action" value="create">
         <div class="modal-body">
-          <div class="mb-3"><label class="form-label fw-semibold">Username</label><input type="text" name="username" class="form-control" required></div>
-          <div class="mb-3"><label class="form-label fw-semibold">Password</label><input type="password" name="password" class="form-control" required></div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">Linked Businesses</label>
-            <div class="border rounded p-2">
-              {% if businesses %}
-              {% for b in businesses %}
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="businesses" value="{{ b }}" id="biz_{{ loop.index }}">
-                <label class="form-check-label" for="biz_{{ loop.index }}">{{ b }}</label>
-              </div>
+            <label class="form-label fw-semibold">Business</label>
+            <select name="business" class="form-select" required>
+              <option value="" disabled selected>Select a business…</option>
+              {% for b in unassigned_businesses %}
+              <option value="{{ b }}">{{ b }}</option>
               {% endfor %}
-              {% else %}
-              <p class="text-muted small mb-0">No businesses yet.</p>
-              {% endif %}
-            </div>
-            <div class="form-text">Leave blank to grant access to all businesses.</div>
+            </select>
+            {% if not unassigned_businesses %}
+            <div class="form-text text-danger">Every business already has a manager account.</div>
+            {% else %}
+            <div class="form-text">Only businesses without a manager account are listed.</div>
+            {% endif %}
           </div>
+          <div class="mb-3"><label class="form-label fw-semibold">Manager Username</label><input type="text" name="username" class="form-control" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Manager Password</label><input type="password" name="password" class="form-control" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Recovery Email <span class="text-muted fw-normal">(optional)</span></label><input type="email" name="email" class="form-control"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

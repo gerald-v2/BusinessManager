@@ -10,32 +10,57 @@
     <div class="card mb-3">
       <div class="card-header fw-semibold"><i class="bi bi-robot me-2 text-primary"></i>AI Marketing Tools</div>
       <div class="card-body">
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <form method="POST">
-              <input type="hidden" name="tool" value="email">
-              <button class="btn btn-outline-primary w-100"><i class="bi bi-envelope me-2"></i>Generate Email</button>
-            </form>
+        <form method="POST">
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Product <span class="fw-normal">(optional)</span></label>
+              <select name="product" class="form-select form-select-sm">
+                <option value="">— General / not product-specific —</option>
+                {% for p in products %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Promotion type</label>
+              <select name="promo_type" class="form-select form-select-sm">
+                {% for pt in promo_types %}
+                <option value="{{ pt }}">{{ pt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Tone</label>
+              <select name="tone" class="form-select form-select-sm">
+                {% for t in tones %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Platform <span class="fw-normal">(captions only)</span></label>
+              <select name="platform" class="form-select form-select-sm">
+                {% for pf in platforms %}
+                <option value="{{ pf }}">{{ pf }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
-          <div class="col-6">
-            <form method="POST">
-              <input type="hidden" name="tool" value="caption">
-              <button class="btn btn-outline-info w-100"><i class="bi bi-chat-quote me-2"></i>Social Caption</button>
-            </form>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <button type="submit" name="tool" value="email" class="btn btn-outline-primary w-100"><i class="bi bi-envelope me-2"></i>Generate Email</button>
+            </div>
+            <div class="col-6">
+              <button type="submit" name="tool" value="caption" class="btn btn-outline-info w-100"><i class="bi bi-chat-quote me-2"></i>Social Caption</button>
+            </div>
+            <div class="col-6">
+              <button type="submit" name="tool" value="image" class="btn btn-outline-success w-100"><i class="bi bi-image me-2"></i>Generate Image</button>
+            </div>
+            <div class="col-6">
+              <button type="submit" name="tool" value="plan" class="btn btn-outline-warning w-100"><i class="bi bi-map me-2"></i>Marketing Plan</button>
+            </div>
           </div>
-          <div class="col-6">
-            <form method="POST">
-              <input type="hidden" name="tool" value="image">
-              <button class="btn btn-outline-success w-100"><i class="bi bi-image me-2"></i>Image Concept</button>
-            </form>
-          </div>
-          <div class="col-6">
-            <form method="POST">
-              <input type="hidden" name="tool" value="plan">
-              <button class="btn btn-outline-warning w-100"><i class="bi bi-map me-2"></i>Marketing Plan</button>
-            </form>
-          </div>
-        </div>
+        </form>
 
         {% if result %}
         <div class="border rounded p-3 bg-light">
@@ -46,6 +71,16 @@
             </button>
           </div>
           <pre id="aiResult" class="mb-0 small" style="white-space:pre-wrap">{{ result }}</pre>
+        </div>
+        {% endif %}
+
+        {% if image_url %}
+        <div class="border rounded p-3 bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-semibold small">Generated Image</span>
+            <a href="{{ image_url }}" download class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Download</a>
+          </div>
+          <img src="{{ image_url }}" class="img-fluid rounded" alt="Generated marketing image">
         </div>
         {% endif %}
       </div>

@@ -10,6 +10,77 @@ KEYWORD_FILE = "keywords.json"
 SENTIMENT_FILE = "sentiment.json"
 CAMPAIGN_FILE = "campaigns.json"
 
+#____STRUCTURED AI MARKETING OPTIONS____
+# The business never types a free prompt — they pick from these, and we
+# build the prompt server-side. Keeps output on-brand and avoids prompt
+# injection / misuse of the AI tools.
+
+PROMO_TYPES = [
+    "None / General Promotion",
+    "Discount",
+    "Flash Sale",
+    "BOGO (Buy One Get One)",
+    "New Arrival",
+    "Clearance",
+    "Bundle Deal",
+    "Loyalty Reward",
+    "Seasonal / Holiday",
+]
+
+TONES = [
+    "Professional",
+    "Fun & Playful",
+    "Bold & Urgent",
+    "Warm & Friendly",
+]
+
+PLATFORMS = ["Instagram", "Facebook", "TikTok", "General / Any platform"]
+
+
+def build_prompt(tool, biz, biz_data, product=None, promo_type=None, tone=None, platform=None):
+    """Build a structured prompt for the given tool from the business's own data
+    and the admin's dropdown selections — never from raw user text."""
+    industry = biz_data.get('industry', '')
+    location = biz_data.get('location', '')
+    target = biz_data.get('targetcustomer', '')
+    tone = tone or "Professional"
+    promo_type = promo_type or "None / General Promotion"
+
+    product_line = ""
+    if product:
+        details = biz_data.get('products', {}).get(product, {})
+        price = details.get('Price', '')
+        product_line = f" The focus product is '{product}'"
+        if price:
+            product_line += f", priced at {price}."
+        else:
+            product_line += "."
+
+    promo_line = ""
+    if promo_type and promo_type != "None / General Promotion":
+        promo_line = f" This is specifically promoting a {promo_type} offer."
+
+    base_context = (
+        f"{biz} is a business in the {industry} industry, based in {location}, "
+        f"targeting {target}.{product_line}{promo_line} Use a {tone.lower()} tone."
+    )
+
+    if tool == 'email':
+        return f"Write a marketing email for {biz}. {base_context} Include a subject line."
+    elif tool == 'caption':
+        plat = platform or "Instagram"
+        return (f"Write a social media caption for {plat} for {biz}. {base_context} "
+                f"Keep it under 150 words and include relevant hashtags.")
+    elif tool == 'plan':
+        return (f"Create a 3-month marketing plan for {biz}. {base_context} "
+                f"Include channels, a rough budget split, and weekly actions.")
+    elif tool == 'image':
+        return (f"A professional marketing image for {biz}, a {industry} business "
+                f"in {location} targeting {target}.{product_line}{promo_line} "
+                f"{tone} style, bright and eye-catching, suitable for social media, "
+                f"no text overlay.")
+    return base_context
+
 #____STORAGE HELPERS____
 def _load_json(filepath):
     try:
