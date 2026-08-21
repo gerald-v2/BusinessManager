@@ -44,6 +44,10 @@ def call_api(prompt, temperature=0.9):
         })
         parts = result["candidates"][0]["content"]["parts"]
         return "".join(p.get("text", "") for p in parts).strip()
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", errors="ignore")[:500]
+        print(f"[api_handler] Gemini text HTTP error: {e.code} model={GEMINI_TEXT_MODEL} {detail}")
+        return _demo_response(prompt)
     except Exception as e:
         print(f"[api_handler] Gemini text error: {e}")
         return _demo_response(prompt)
