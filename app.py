@@ -1633,7 +1633,7 @@ def marketing(biz):
             result = api_handler.call_api(prompt)
         elif tool == 'image':
             prompt = mkt.build_prompt('image', biz, biz_data, product, promo_type, tone, platform)
-            img_bytes, mime_or_error = api_handler.call_gemini_image(prompt)
+            img_bytes, mime_or_error = api_handler.call_openai_image(prompt)
             if img_bytes:
                 image_url = api_handler.save_generated_image(img_bytes, mime_or_error, biz)
             else:

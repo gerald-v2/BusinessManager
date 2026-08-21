@@ -10,21 +10,16 @@ import business_manager
 
 data = {}
 
-# ── GEMINI (text + image) ───────────────────────────────────────────────────
-# Set GEMINI_API_KEY in your environment (Render dashboard / .env).
-# Model IDs are overridable via env vars since Google renames/retires them
-# periodically — check https://ai.google.dev/gemini-api/docs/models if a
-# call starts failing with a 404.
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_TEXT_MODEL = os.environ.get("GEMINI_TEXT_MODEL", "gemini-2.0-flash")
-GEMINI_IMAGE_MODEL = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-2.0-flash-image")
-GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_TEXT_MODEL = os.environ.get("OPENAI_TEXT_MODEL", "gpt-5.4-mini")
+OPENAI_IMAGE_MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2")
+OPENAI_BASE = "https://api.openai.com/v1"
 
 
-def _gemini_request(model, body, timeout=60):
+def _openai_request(model, body, timeout=60):
     req = urllib.request.Request(
-        f"{GEMINI_BASE}/{model}:generateContent?key={GEMINI_API_KEY}",
+        f"{OPENAI_BASE}/{model}:generateContent?key={OPENAI_API_KEY}",
         data=json.dumps(body).encode("utf-8"),
         headers={"content-type": "application/json"},
         method="POST"
@@ -35,10 +30,10 @@ def _gemini_request(model, body, timeout=60):
 
 def call_api(prompt, temperature=0.9):
     """Text generation (email/caption/plan copy) via Gemini. Falls back to demo text."""
-    if not GEMINI_API_KEY:
+    if not OPENAI_API_KEY:
         return _demo_response(prompt)
     try:
-        result = _gemini_request(GEMINI_TEXT_MODEL, {
+        result = _openai_request(OPENAI_TEXT_MODEL, {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": temperature, "maxOutputTokens": 1024},
         })
@@ -46,24 +41,24 @@ def call_api(prompt, temperature=0.9):
         return "".join(p.get("text", "") for p in parts).strip()
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", errors="ignore")[:500]
-        print(f"[api_handler] Gemini text HTTP error: {e.code} model={GEMINI_TEXT_MODEL} {detail}")
+        print(f"[api_handler] Gemini text HTTP error: {e.code} model={OPENAI_TEXT_MODEL} {detail}")
         return _demo_response(prompt)
     except Exception as e:
         print(f"[api_handler] Gemini text error: {e}")
         return _demo_response(prompt)
 
 
-def call_gemini_image(prompt):
+def call_openai_image(prompt):
     """
     Image generation via Gemini. Returns (image_bytes, mime_type) on success,
     or (None, error_message) on failure — callers must handle the failure
     case explicitly rather than silently showing placeholder text, since a
     business posting a fake product photo is a real-world problem.
     """
-    if not GEMINI_API_KEY:
+    if not OPENAI_API_KEY:
         return None, "GEMINI_API_KEY is not set."
     try:
-        result = _gemini_request(GEMINI_IMAGE_MODEL, {
+        result = _openai_request(OPENAI_IMAGE_MODEL, {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
         }, timeout=90)
