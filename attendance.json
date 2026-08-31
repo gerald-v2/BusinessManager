@@ -1,26 +1,33 @@
 {
-    "House Of Stembii": {
-        "2026-04-13": [
-            {
-                "employee": "Gerald",
-                "clock_in": "21:20",
-                "clock_out": null,
-                "hours": null
-            }
-        ],
-        "2026-05-10": [
-            {
-                "employee": "Gerald",
-                "clock_in": "12:28",
-                "clock_out": "13:18",
-                "hours": 0.83
-            },
-            {
-                "employee": "Constantine",
-                "clock_in": "12:28",
-                "clock_out": null,
-                "hours": null
-            }
-        ]
-    }
+  "Beta Test": {
+    "2026-08-30": [
+      {
+        "auto": true,
+        "clock_in": "15:03",
+        "clock_out": "15:03",
+        "employee": "Denzel Ngara",
+        "hours": 0.0
+      }
+    ]
+  },
+  "House Of Stembii": {
+    "2026-04-13": [
+      {
+        "clock_in": "21:20",
+        "employee": "Gerald"
+      }
+    ],
+    "2026-05-10": [
+      {
+        "clock_in": "12:28",
+        "clock_out": "13:18",
+        "employee": "Gerald",
+        "hours": 0.83
+      },
+      {
+        "clock_in": "12:28",
+        "employee": "Constantine"
+      }
+    ]
+  }
 }

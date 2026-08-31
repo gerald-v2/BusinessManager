@@ -1,6 +1,27 @@
 {
-    "admin": {
-        "password": "Coge2008",
-        "role": "admin"
-    }
+  "admin": {
+    "password": "Coge2008",
+    "role": "admin"
+  },
+  "beta-testing": {
+    "businesses": [
+      "Beta Test"
+    ],
+    "password": "Test1234",
+    "role": "business"
+  },
+  "gerald_szn": {
+    "businesses": [
+      "Apple"
+    ],
+    "password": "Coge2008",
+    "role": "business"
+  },
+  "gerald_v2": {
+    "businesses": [
+      "House Of Stembii"
+    ],
+    "password": "coge2008",
+    "role": "business"
+  }
 }

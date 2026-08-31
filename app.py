@@ -11,6 +11,7 @@ load_dotenv()
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import firebase_sync
+from ai_business import AIBusiness
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE_DIR)
@@ -1899,6 +1900,48 @@ def admin_accounts():
                            businesses=list(businesses.keys()),
                            unassigned_businesses=unassigned)
 
+
+#(TESTING NEW) AI BUSINESS MANAGER
+
+@app.route("/biz/<biz>/ai-business")
+def ai_business(biz):
+
+    r = _require_biz_access(biz)
+
+    if r:
+        return r
+
+    return render_template(
+        "ai_business.html",
+        biz=biz
+    )
+
+@app.route("/biz/<biz>/ai-business/ask", methods=["POST"])
+def ask_ai(biz):
+
+    r = _require_biz_access(biz)
+
+    if r:
+        return jsonify({
+            "error": "Access denied"
+        }), 403
+
+    data = request.get_json()
+
+    message = data.get("message", "").strip()
+
+    if not message:
+        return jsonify({
+            "error": "No message provided"
+        }), 400
+
+    ai = AIBusiness(biz)
+
+    answer = ai.ask(message)
+
+    return jsonify({
+        "response": answer
+    })
 # ── RUN ───────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':

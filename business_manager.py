@@ -196,6 +196,7 @@ def view_product(name):
     products = businesses[name].get("products", {})
     if not products:
         print(f"There are no products in {name.title()}")
+        return None
     else:
         for p_name, details in products.items():
             sell_price = format_price(details.get('Price', 'Not Set'), sym)
@@ -207,6 +208,11 @@ def view_product(name):
                     plu = v.get('PLU', 'N/A')
                     sold = v.get('sold', 0)
                     print(f"    [{plu}] {v['name']}: {v['units']} units | sold: {sold}")
+            else:
+                print("No Variants For Product")
+        return {"Product Name": p_name,
+                }
+
 
 def add_product(name, product_name):
     curr = get_business_currency(name)
@@ -239,17 +245,82 @@ def get_inventory_value(name):
         print(f"{p_name}: {product_total} units")
         grand_total += product_total
     print(f"TOTAL ACROSS ALL PRODUCTS: {grand_total} units")
+    return {"Inventory Total": grand_total}
 
 def low_stock_report(name, threshold=5):
+    businesses = load_business()
+
+    # Safely find the business
+    business = businesses.get(name)
+
+    # If exact name wasn't found, try ignoring
+    # capitalization and extra spaces
+    if business is None:
+        for business_name, business_data in businesses.items():
+            if business_name.strip().lower() == name.strip().lower():
+                business = business_data
+                name = business_name
+                break
+
+    # Business doesn't exist
+    if business is None:
+        print(f"\nBusiness '{name}' not found.")
+
+        return {
+            "success": False,
+            "error": f"Business '{name}' not found",
+            "low_stock_products": []
+        }
+
+    products = business.get("products", {})
+
+    low_stock_products = []
+
     print(f"\n--- LOW STOCK REPORT (Under {threshold} units) ---")
-    found = False
-    for p_name, details in businesses[name]["products"].items():
+
+    # Go through every product
+    for p_name, details in products.items():
+
+        # Go through every variant of the product
         for v in details.get("variants", []):
-            if v.get("units", 0) < threshold:
-                print(f"ALERT: {p_name} ({v.get('name')}) - Only {v.get('units')} units left!")
-                found = True
-    if not found:
-        print("All stock levels are healthy.")
+
+            v_name = v.get("name", "Unknown Variant")
+            v_units = v.get("units", 0)
+
+            # Check if stock is below threshold
+            if v_units < threshold:
+
+                print(
+                    f"ALERT: {p_name} ({v_name}) - "
+                    f"Only {v_units} units left!"
+                )
+
+                low_stock_products.append({
+                    "Product Name": p_name,
+                    "Variant Name": v_name,
+                    "Variant Units": v_units
+                })
+
+    # Nothing is low
+    if not low_stock_products:
+
+        print("All Products are Healthy")
+
+        return {
+            "success": True,
+            "business": name,
+            "low_stock_products": [],
+            "count": 0,
+            "message": "All Products are Healthy"
+        }
+
+    # Return ALL low-stock products
+    return {
+        "success": True,
+        "business": name,
+        "low_stock_products": low_stock_products,
+        "count": len(low_stock_products)
+    }
 
 def find_plu_owner(name, plu, skip_product=None, skip_variant=None):
     for p_name, details in businesses[name].get("products", {}).items():
@@ -308,16 +379,56 @@ def remove_variant(name, product_variant, variant_name):
     print("Variant or product not found.")
 
 def best_sellers(name):
+    businesses = load_business()
+
+    # Safely find the business
+    business = businesses.get(name)
+
+    # If exact name wasn't found, try ignoring
+    # capitalization and extra spaces
+    if business is None:
+        for business_name, business_data in businesses.items():
+            if business_name.strip().lower() == name.strip().lower():
+                business = business_data
+                name = business_name
+                break
+
+    # Business doesn't exist
+    if business is None:
+        print(f"\nBusiness '{name}' not found.")
+
+        return {
+            "success": False,
+            "error": f"Business '{name}' not found",
+            "best_sellers": []
+        }
+
     sym = get_currency_symbol(get_business_currency(name))
+
     all_variants = []
-    for p_name, details in businesses[name].get("products", {}).items():
-        price_raw = str(details.get("Price", "0")).replace("$", "").strip()
+
+    products = business.get("products", {})
+
+    for p_name, details in products.items():
+
+        price_raw = str(
+            details.get("Price", "0")
+        ).replace("$", "").strip()
+
         try:
             price = float(price_raw)
-        except ValueError:
+        except (ValueError, TypeError):
             price = 0.0
+
         for v in details.get("variants", []):
+
             sold = v.get("sold", 0)
+
+            try:
+                sold = int(sold)
+            except (ValueError, TypeError):
+                sold = 0
+
             all_variants.append({
                 "product": p_name,
                 "variant": v.get("name", ""),
@@ -325,16 +436,55 @@ def best_sellers(name):
                 "sold": sold,
                 "revenue": round(sold * price, 2)
             })
+
+    # No products / sales
     if not all_variants:
         print("No sales recorded yet.")
-        return
-    all_variants.sort(key=lambda x: x["sold"], reverse=True)
+
+        return {
+            "success": True,
+            "business": name,
+            "best_sellers": [],
+            "count": 0
+        }
+
+    # Sort from most sold to least sold
+    all_variants.sort(
+        key=lambda x: x["sold"],
+        reverse=True
+    )
+
+    # Existing terminal output
     print(f"\n--- BEST SELLERS: {name.upper()} ---")
-    print(f"  {'Rank':<5} {'PLU':<8} {'Product / Variant':<30} {'Sold':>6} {'Revenue':>12}")
-    print(f"  {'-'*65}")
+    print(
+        f"  {'Rank':<5} "
+        f"{'PLU':<8} "
+        f"{'Product / Variant':<30} "
+        f"{'Sold':>6} "
+        f"{'Revenue':>12}"
+    )
+
+    print(f"  {'-' * 65}")
+
     for i, item in enumerate(all_variants, 1):
+
         label = f"{item['product']} ({item['variant']})"
-        print(f"  {i:<5} {item['plu']:<8} {label:<30} {item['sold']:>6} {sym}{item['revenue']:>11.2f}")
+
+        print(
+            f"  {i:<5} "
+            f"{item['plu']:<8} "
+            f"{label:<30} "
+            f"{item['sold']:>6} "
+            f"{sym}{item['revenue']:>11.2f}"
+        )
+
+    # Return structured data for AI
+    return {
+        "success": True,
+        "business": name,
+        "best_sellers": all_variants,
+        "count": len(all_variants)
+    }
 
 def group_menu(name):
     if "groups" not in businesses[name]:
@@ -446,7 +596,9 @@ def group_menu(name):
 
 def add_business(name, industry, location, targetcustomer, businessmail, currency="USD"):
     global businesses
-    businesses[name] = {
+    import random
+    id = random.randint(0, len(businesses)-1)
+    businesses[name][id] = {
         "industry": industry,
         "location": location,
         "targetcustomer": targetcustomer,
@@ -516,8 +668,10 @@ def delete_business(name):
 def search_business(name):
     if name in businesses:
         print(f"Found: {name} ({businesses[name]['industry']})")
+        return name
     else:
         print("Not found.")
+        return None
 
 def store_business():
     with open(FILE1, "w") as file:
@@ -677,9 +831,9 @@ def product_menu(name):
             elif option == 9:
                 try:
                     limit = int(input("Enter threshold for low stock (default 5): "))
-                    low_stock_report(name, threshold=limit)
+                    print(low_stock_report(name, threshold=limit))
                 except ValueError:
-                    low_stock_report(name)
+                    print(low_stock_report(name))
 
             elif option == 10:
                 best_sellers(name)

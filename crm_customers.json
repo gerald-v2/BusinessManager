@@ -1,128 +1,127 @@
 {
-    "House Of Stembii": [
+  "House Of Stembii": [
+    {
+      "email": "geraldnya54@gmail.com",
+      "joined": "2026-05-10",
+      "name": "Herald",
+      "notes": "",
+      "phone": "0780589995",
+      "points": 2950,
+      "purchases": [
         {
-            "name": "Herald",
-            "phone": "0780589995",
-            "email": "geraldnya54@gmail.com",
-            "notes": "",
-            "joined": "2026-05-10",
-            "purchases": [
-                {
-                    "date": "2026-05-10",
-                    "time": "12:43",
-                    "items": [
-                        {
-                            "product": "100Pcs Balloons",
-                            "variant": "Red",
-                            "plu": "1000",
-                            "qty": 20,
-                            "unit_price": 100.0,
-                            "subtotal": 2000.0
-                        },
-                        {
-                            "product": "Lights",
-                            "variant": "Bue",
-                            "plu": "0001",
-                            "qty": 4,
-                            "unit_price": 25.0,
-                            "subtotal": 100.0
-                        }
-                    ],
-                    "total": 2421.3,
-                    "points_earned": 2421
-                },
-                {
-                    "date": "2026-05-10",
-                    "time": "13:18",
-                    "items": [
-                        {
-                            "product": "100Pcs Balloons",
-                            "variant": "Red",
-                            "plu": "1000",
-                            "qty": 20,
-                            "unit_price": 100.0,
-                            "subtotal": 2000.0
-                        },
-                        {
-                            "product": "Lights",
-                            "variant": "Bue",
-                            "plu": "0001",
-                            "qty": 4,
-                            "unit_price": 25.0,
-                            "subtotal": 100.0
-                        }
-                    ],
-                    "total": 1690.5,
-                    "points_earned": 1029
-                }
-            ],
-            "points": 2950
+          "date": "2026-05-10",
+          "items": [
+            {
+              "plu": "1000",
+              "product": "100Pcs Balloons",
+              "qty": 20,
+              "subtotal": 2000.0,
+              "unit_price": 100.0,
+              "variant": "Red"
+            },
+            {
+              "plu": "0001",
+              "product": "Lights",
+              "qty": 4,
+              "subtotal": 100.0,
+              "unit_price": 25.0,
+              "variant": "Bue"
+            }
+          ],
+          "points_earned": 2421,
+          "time": "12:43",
+          "total": 2421.3
         },
         {
-            "name": "Linda",
-            "phone": "0779867211",
-            "email": "",
-            "notes": "",
-            "joined": "2026-05-10",
-            "points": 0,
-            "purchases": []
-        },
+          "date": "2026-05-10",
+          "items": [
+            {
+              "plu": "1000",
+              "product": "100Pcs Balloons",
+              "qty": 20,
+              "subtotal": 2000.0,
+              "unit_price": 100.0,
+              "variant": "Red"
+            },
+            {
+              "plu": "0001",
+              "product": "Lights",
+              "qty": 4,
+              "subtotal": 100.0,
+              "unit_price": 25.0,
+              "variant": "Bue"
+            }
+          ],
+          "points_earned": 1029,
+          "time": "13:18",
+          "total": 1690.5
+        }
+      ]
+    },
+    {
+      "email": "",
+      "joined": "2026-05-10",
+      "name": "Linda",
+      "notes": "",
+      "phone": "0779867211",
+      "points": 0
+    },
+    {
+      "email": "",
+      "joined": "2026-05-10",
+      "name": "John",
+      "notes": "",
+      "phone": "072332313",
+      "points": 858,
+      "purchases": [
         {
-            "name": "John",
-            "phone": "072332313",
-            "email": "",
-            "notes": "",
-            "joined": "2026-05-10",
-            "points": 858,
-            "purchases": [
-                {
-                    "date": "2026-05-10",
-                    "time": "13:16",
-                    "items": [
-                        {
-                            "product": "100Pcs Balloons",
-                            "variant": "Royal Blue",
-                            "plu": "1003",
-                            "qty": 10,
-                            "unit_price": 100.0,
-                            "subtotal": 1000.0
-                        },
-                        {
-                            "product": "Lights",
-                            "variant": "Green",
-                            "plu": "0002",
-                            "qty": 7,
-                            "unit_price": 25.0,
-                            "subtotal": 175.0
-                        }
-                    ],
-                    "total": 1410.0,
-                    "points_earned": 858
-                }
-            ]
+          "date": "2026-05-10",
+          "items": [
+            {
+              "plu": "1003",
+              "product": "100Pcs Balloons",
+              "qty": 10,
+              "subtotal": 1000.0,
+              "unit_price": 100.0,
+              "variant": "Royal Blue"
+            },
+            {
+              "plu": "0002",
+              "product": "Lights",
+              "qty": 7,
+              "subtotal": 175.0,
+              "unit_price": 25.0,
+              "variant": "Green"
+            }
+          ],
+          "points_earned": 858,
+          "time": "13:16",
+          "total": 1410.0
         }
-    ],
-    "_config": {
-        "House Of Stembii": {
-            "points_enabled": true,
-            "points_per_dollar": 10.0,
-            "tiers": [
-                {
-                    "points": 100,
-                    "discount_pct": 10.0,
-                    "label": "Silver"
-                },
-                {
-                    "points": 300,
-                    "discount_pct": 20.0,
-                    "label": "Supreme"
-                },
-                {
-                    "points": 500,
-                    "discount_pct": 30.0,
-                    "label": "Elite"
-                }
-            ]
-        }
+      ]
     }
+  ],
+  "_config": {
+    "House Of Stembii": {
+      "points_enabled": true,
+      "points_per_dollar": 10.0,
+      "tiers": [
+        {
+          "discount_pct": 10.0,
+          "label": "Silver",
+          "points": 100
+        },
+        {
+          "discount_pct": 20.0,
+          "label": "Supreme",
+          "points": 300
+        },
+        {
+          "discount_pct": 30.0,
+          "label": "Elite",
+          "points": 500
+        }
+      ]
+    }
+  }
 }

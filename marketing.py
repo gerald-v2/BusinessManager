@@ -143,6 +143,7 @@ def create_caption(name, industry, location, targetcustomer):
 
 def automarketing():
     print("Automarketing is not yet available (coming soon).")
+    pass
 
 #____MARKETING PLAN____
 def marketing_plan():

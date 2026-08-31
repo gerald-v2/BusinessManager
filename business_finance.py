@@ -19,11 +19,19 @@ def get_biz_symbol(name):
 #______REVENUE________
 def business_revenue(name):
     global business_finance
-    data = business_finance.get(name, {})
+
+    data = business_finance.get(name,{})
     revenue = data.get("Revenue", 0) or 0
     sym = get_biz_symbol(name)
+
     print(f"\n--- {name.upper()} REVENUE ---")
     print(f"Total Revenue: {sym}{revenue:.2f}")
+
+    return {
+        "Business Name": name,
+        "Revenue": revenue,
+        "Currency": sym
+    }
 
 def business_profit(name):
     global business_finance
@@ -46,6 +54,12 @@ def business_profit(name):
         print("  Status: BREAKING EVEN")
     else:
         print("  Status: AT A LOSS")
+    return {"Business Data": data,
+            "Revenue": revenue,
+            "Recorded_Costs": recorded_costs,
+            "Monthly Payroll": payroll,
+            "Total Costs": total_costs,
+            "Net Profit": profit}
 
 def add_revenue(name, revenue):
     global business_finance
@@ -82,6 +96,12 @@ def financial_summary(name):
         print("  Status: BREAKING EVEN")
     else:
         print("  Status: AT A LOSS")
+    return {"Revenue": revenue,
+            "Recorded Costs": recorded_costs,
+            "Monthly Payroll": payroll,
+            "Total Costs": total_costs,
+            "Net Profit": profit,
+            "Profit Margin": margin}
 
 #_____COSTS______
 def get_monthly_payroll(name):
@@ -99,6 +119,9 @@ def business_costs(name):
     print(f"  Recorded Costs:  {sym}{recorded:.2f}")
     print(f"  Monthly Payroll: {sym}{payroll:.2f}")
     print(f"  Total Costs:     {sym}{total:.2f}")
+    return {"Recorded Costs": recorded,
+            "Monthly Payroll": payroll,
+            "Total Costs": total}
 
 def add_costs(name, amount, description=""):
     global business_finance

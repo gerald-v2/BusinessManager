@@ -567,6 +567,31 @@ def refund_sale(name):
     save_sales(sales_data)
     print(f"  Refund of {sym}{sale['total']:.2f} processed. Stock restored.")
 
+
+# GETTING SALES FROM TIME PERIOD
+from datetime import datetime, timedelta
+
+
+def get_sales_last_n_days(business_id, days):
+    sales_data = load_sales()
+    business_data = sales_data.get(business_id, [])
+    cut_off_date = datetime.now() - timedelta(days=days)
+
+    filtered_sales = []
+    for sale in business_data:
+        sale_date = sale.get("date")
+
+        if not sale_date:
+            continue
+        try:
+            sale_datetime = datetime.strptime(sale_date, "%Y-%m-%d")
+        except ValueError:
+            continue
+        if sale_datetime >= cut_off_date:
+            filtered_sales.append(sale)
+    return filtered_sales
+
+
 # ─────────────────────── MENU ─────────────────────────────────
 
 def pos_menu(name):

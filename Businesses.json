@@ -1,128 +1,134 @@
 {
-    "House Of Stembii": {
-        "industry": "Party Shop",
-        "location": "Harare",
-        "targetcustomer": "Children",
-        "businessmail": "houseofstembii@gmail.com",
-        "products": {
-            "Lights": {
-                "Price": "$25.00",
-                "Cost": "$5.00",
-                "variants": [
-                    {
-                        "name": "Bue",
-                        "units": 2,
-                        "PLU": "0001",
-                        "sold": 8
-                    },
-                    {
-                        "name": "Green",
-                        "units": 0,
-                        "PLU": "0002",
-                        "sold": 15
-                    }
-                ]
-            },
-            "100Pcs Balloons": {
-                "Price": "$100.00",
-                "Cost": "$30.00",
-                "variants": [
-                    {
-                        "name": "Red",
-                        "units": 10,
-                        "PLU": "1000",
-                        "sold": 40
-                    },
-                    {
-                        "name": "White",
-                        "units": 30,
-                        "PLU": "1001",
-                        "sold": 10
-                    },
-                    {
-                        "name": "Emerald Green",
-                        "units": 35,
-                        "PLU": "1002",
-                        "sold": 0
-                    },
-                    {
-                        "name": "Royal Blue",
-                        "units": 35,
-                        "PLU": "1003",
-                        "sold": 10
-                    },
-                    {
-                        "name": "Baby Yellow",
-                        "units": 43,
-                        "PLU": "1004",
-                        "sold": 0
-                    }
-                ]
-            }
-        },
-        "currency": "RND",
-        "groups": {
-            "Decorations": [
-                "Lights"
-            ]
-        }
+  "Apple": {
+    "businessmail": "apple@gmail.com",
+    "currency": "RND",
+    "industry": "Technology",
+    "location": "United States",
+    "products": {
+      "Ipad": {
+        "Cost": "$10000.00",
+        "Price": "$20000.00",
+        "variants": [
+          {
+            "PLU": "1000",
+            "name": "White",
+            "sold": 0,
+            "units": 50
+          },
+          {
+            "PLU": "1100",
+            "name": "Red",
+            "sold": 3,
+            "units": 57
+          },
+          {
+            "PLU": "1200",
+            "name": "Green",
+            "sold": 0,
+            "units": 75
+          }
+        ]
+      },
+      "Iphone": {
+        "Cost": "$500.00",
+        "Price": "$1200.00",
+        "variants": [
+          {
+            "PLU": "0001",
+            "name": "Red",
+            "sold": 26,
+            "units": 24
+          },
+          {
+            "PLU": "0002",
+            "name": "White",
+            "sold": 0,
+            "units": 40
+          },
+          {
+            "PLU": "0003",
+            "name": "Green",
+            "sold": 0,
+            "units": 20
+          }
+        ]
+      }
     },
-    "Apple": {
-        "industry": "Technology",
-        "location": "United States",
-        "targetcustomer": "Young Adults",
-        "businessmail": "apple@gmail.com",
-        "currency": "RND",
-        "products": {
-            "Iphone": {
-                "Price": "$1200.00",
-                "Cost": "$500.00",
-                "variants": [
-                    {
-                        "name": "Red",
-                        "units": 24,
-                        "PLU": "0001",
-                        "sold": 26
-                    },
-                    {
-                        "name": "White",
-                        "units": 40,
-                        "PLU": "0002",
-                        "sold": 0
-                    },
-                    {
-                        "name": "Green",
-                        "units": 20,
-                        "PLU": "0003",
-                        "sold": 0
-                    }
-                ]
-            },
-            "Ipad": {
-                "Price": "$20000.00",
-                "Cost": "$10000.00",
-                "variants": [
-                    {
-                        "name": "White",
-                        "units": 50,
-                        "PLU": "1000",
-                        "sold": 0
-                    },
-                    {
-                        "name": "Red",
-                        "units": 57,
-                        "PLU": "1100",
-                        "sold": 3
-                    },
-                    {
-                        "name": "Green",
-                        "units": 75,
-                        "PLU": "1200",
-                        "sold": 0
-                    }
-                ]
-            }
-        },
-        "groups": {}
-    }
+    "targetcustomer": "Young Adults"
+  },
+  "Beta Test": {
+    "businessmail": "geraldnyahada@gmail.com",
+    "currency": "USD",
+    "industry": "No",
+    "location": "No",
+    "targetcustomer": "No"
+  },
+  "House Of Stembii": {
+    "businessmail": "houseofstembii@gmail.com",
+    "currency": "RND",
+    "groups": {
+      "Decorations": [
+        "Lights"
+      ]
+    },
+    "industry": "Party Shop",
+    "location": "Harare",
+    "products": {
+      "100Pcs Balloons": {
+        "Cost": "$30.00",
+        "Price": "$100.00",
+        "variants": [
+          {
+            "PLU": "1000",
+            "name": "Red",
+            "sold": 40,
+            "units": 10
+          },
+          {
+            "PLU": "1001",
+            "name": "White",
+            "sold": 10,
+            "units": 30
+          },
+          {
+            "PLU": "1002",
+            "name": "Emerald Green",
+            "sold": 0,
+            "units": 35
+          },
+          {
+            "PLU": "1003",
+            "name": "Royal Blue",
+            "sold": 10,
+            "units": 35
+          },
+          {
+            "PLU": "1004",
+            "name": "Baby Yellow",
+            "sold": 0,
+            "units": 43
+          }
+        ]
+      },
+      "Lights": {
+        "Cost": "$5.00",
+        "Price": "$25.00",
+        "variants": [
+          {
+            "PLU": "0001",
+            "name": "Bue",
+            "sold": 8,
+            "units": 2
+          },
+          {
+            "PLU": "0002",
+            "name": "Green",
+            "sold": 15,
+            "units": 0
+          }
+        ]
+      }
+    },
+    "targetcustomer": "Children"
+  }
 }

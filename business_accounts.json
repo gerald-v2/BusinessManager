@@ -1,11 +1,11 @@
 {
-    "House Of Stembii": {
-        "username": "stembi.db",
-        "password": "Coge2008"
-    },
-    "Apple": {
-        "username": "gerald.szn",
-        "password": "Coge2008",
-        "email": ""
-    }
+  "Beta Test": {
+    "email": "",
+    "password": "Test123",
+    "username": "beta-testing"
+  },
+  "House Of Stembii": {
+    "password": "Coge2008",
+    "username": "stembi.db"
+  }
 }
