@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="e8545c4e-e232-4b4d-a7d6-2c1044330915" name="Changes" comment="changed account names to ones that are allowed">
+      <change afterPath="$PROJECT_DIR$/static/js/ai_business.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/ai_business.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Business_Finance.json" beforeDir="false" afterPath="$PROJECT_DIR$/Business_Finance.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Businesses.json" beforeDir="false" afterPath="$PROJECT_DIR$/Businesses.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pos.py" beforeDir="false" afterPath="$PROJECT_DIR$/Pos.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts.json" beforeDir="false" afterPath="$PROJECT_DIR$/accounts.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai_business.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai_business.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/api_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/attendance.json" beforeDir="false" afterPath="$PROJECT_DIR$/attendance.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/business_accounts.json" beforeDir="false" afterPath="$PROJECT_DIR$/business_accounts.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/business_finance.py" beforeDir="false" afterPath="$PROJECT_DIR$/business_finance.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/business_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/business_manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crm_customers.json" beforeDir="false" afterPath="$PROJECT_DIR$/crm_customers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/employees.json" beforeDir="false" afterPath="$PROJECT_DIR$/employees.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchange_rates.json" beforeDir="false" afterPath="$PROJECT_DIR$/exchange_rates.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/marketing.py" beforeDir="false" afterPath="$PROJECT_DIR$/marketing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pos_sales.json" beforeDir="false" afterPath="$PROJECT_DIR$/pos_sales.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/price_monitor.json" beforeDir="false" afterPath="$PROJECT_DIR$/price_monitor.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/offline-sync.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/offline-sync.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/sw.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/sw.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+        <option value="HTML File" />
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;gerald-v2&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/gerald-v2/BusinessManager.git&quot;,
+    &quot;accountId&quot;: &quot;f6b4deda-49c6-4606-bdf8-39d114feac82&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3HaXb1L4KNyV0UcMg1gXYGlc79L" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "DefaultHtmlFileTemplate": "HTML File",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.ai_business.executor": "Run",
+    "Python.app.executor": "Run",
+    "Python.business_manager.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.grazie"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Lenovo Gaming\PycharmProjects\BusinessManager\static\js" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-c59985aa861c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.24374.152" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e8545c4e-e232-4b4d-a7d6-2c1044330915" name="Changes" comment="" />
+      <created>1786107221102</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1786107221102</updated>
+    </task>
+    <task id="LOCAL-00001" summary="line 1819 added firebase_sync.upload_all() function">
+      <option name="closed" value="true" />
+      <created>1786110226064</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1786110226064</updated>
+    </task>
+    <task id="LOCAL-00002" summary="shows response on successful upload">
+      <option name="closed" value="true" />
+      <created>1786110895159</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1786110895159</updated>
+    </task>
+    <task id="LOCAL-00003" summary="showing the actual response after trying to save">
+      <option name="closed" value="true" />
+      <created>1786113720134</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1786113720134</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Showing the values that are not allowed by firebase">
+      <option name="closed" value="true" />
+      <created>1786114154525</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1786114154525</updated>
+    </task>
+    <task id="LOCAL-00005" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786114488943</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1786114488943</updated>
+    </task>
+    <task id="LOCAL-00006" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786302210397</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1786302210397</updated>
+    </task>
+    <task id="LOCAL-00007" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786302879742</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1786302879742</updated>
+    </task>
+    <task id="LOCAL-00008" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786302974134</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1786302974135</updated>
+    </task>
+    <task id="LOCAL-00009" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786305717001</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1786305717001</updated>
+    </task>
+    <task id="LOCAL-00010" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786351162924</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1786351162925</updated>
+    </task>
+    <task id="LOCAL-00011" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786351445837</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1786351445837</updated>
+    </task>
+    <task id="LOCAL-00012" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786351783200</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1786351783200</updated>
+    </task>
+    <task id="LOCAL-00013" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786352406507</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1786352406509</updated>
+    </task>
+    <task id="LOCAL-00014" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1786357811932</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1786357811932</updated>
+    </task>
+    <task id="LOCAL-00015" summary="changed account names to ones that are allowed">
+      <option name="closed" value="true" />
+      <created>1787297817930</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1787297817930</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="line 1819 added firebase_sync.upload_all() function" />
+    <MESSAGE value="shows response on successful upload" />
+    <MESSAGE value="showing the actual response after trying to save" />
+    <MESSAGE value="Showing the values that are not allowed by firebase" />
+    <MESSAGE value="changed account names to ones that are allowed" />
+    <option name="LAST_COMMIT_MESSAGE" value="changed account names to ones that are allowed" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/app.py</url>
+          <line>216</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
