@@ -333,6 +333,13 @@ def dashboard():
         _load_finance()
         stats = {}
         for name in businesses:
+            biz_data = businesses[name]
+            if isinstance(biz_data, dict):
+                product_count = len(biz_data.get('products', {}))
+            elif isinstance(biz_data, list):
+                products_count = 0
+            else:
+                products_count = 0
             fin = bf.business_finance.get(name, {})
             rev = fin.get('Revenue', 0) or 0
             costs = fin.get('Costs', 0) or 0
@@ -340,7 +347,7 @@ def dashboard():
             stats[name] = {
                 'revenue': rev, 'costs': costs,
                 'profit': rev - costs - payroll,
-                'products': len(businesses[name].get('products', {})),
+                'products': products_count,
                 'sym': bm.get_currency_symbol(bm.get_business_currency(name)),
             }
         return render_template('admin_dashboard.html', businesses=businesses, stats=stats)
