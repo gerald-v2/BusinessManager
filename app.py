@@ -335,7 +335,7 @@ def dashboard():
         for name in businesses:
             biz_data = businesses[name]
             if isinstance(biz_data, dict):
-                product_count = len(biz_data.get('products', {}))
+                products_count = len(biz_data.get('products', {}))
             elif isinstance(biz_data, list):
                 products_count = 0
             else:
