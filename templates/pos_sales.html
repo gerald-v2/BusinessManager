@@ -54,7 +54,7 @@
               {% for item in sale["items"][:2] %}
               <div>{{ item.product }} ({{ item.variant }}) ×{{ item.qty }}</div>
               {% endfor %}
-              {% if sale.items | length > 2 %}<div class="text-muted">+{{ sale.items | length - 2 }} more</div>{% endif %}
+              {% if sale["items"] | length > 2 %}<div class="text-muted">+{{ sale["items"] | length - 2 }} more</div>{% endif %}
             </td>
             <td class="small">{{ sale.customer or '—' }}</td>
             <td class="fw-semibold {% if sale.refunded %}text-decoration-line-through{% endif %}">
