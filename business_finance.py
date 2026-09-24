@@ -1,4 +1,4 @@
-#BUSINESS FINANCIAL MANAGEMENT
+# BUSINESS FINANCIAL MANAGEMENT
 import json
 
 business_finance = {}
@@ -9,29 +9,31 @@ EXCHANGEFILE = "exchange_rates.json"
 ATTENDANCEFILE = "attendance.json"
 ADVANCEFILE = "salary_advances.json"
 
+
 def get_biz_symbol(name):
     try:
         import business_manager
-        return business_manager.get_currency_symbol(business_manager.get_business_currency(name))
+
+        return business_manager.get_currency_symbol(
+            business_manager.get_business_currency(name)
+        )
     except Exception:
         return "$"
 
-#______REVENUE________
+
+# ______REVENUE________
 def business_revenue(name):
     global business_finance
 
-    data = business_finance.get(name,{})
+    data = business_finance.get(name, {})
     revenue = data.get("Revenue", 0) or 0
     sym = get_biz_symbol(name)
 
     print(f"\n--- {name.upper()} REVENUE ---")
     print(f"Total Revenue: {sym}{revenue:.2f}")
 
-    return {
-        "Business Name": name,
-        "Revenue": revenue,
-        "Currency": sym
-    }
+    return {"Business Name": name, "Revenue": revenue, "Currency": sym}
+
 
 def business_profit(name):
     global business_finance
@@ -54,21 +56,27 @@ def business_profit(name):
         print("  Status: BREAKING EVEN")
     else:
         print("  Status: AT A LOSS")
-    return {"Business Data": data,
-            "Revenue": revenue,
-            "Recorded_Costs": recorded_costs,
-            "Monthly Payroll": payroll,
-            "Total Costs": total_costs,
-            "Net Profit": profit}
+    return {
+        "Business Data": data,
+        "Revenue": revenue,
+        "Recorded_Costs": recorded_costs,
+        "Monthly Payroll": payroll,
+        "Total Costs": total_costs,
+        "Net Profit": profit,
+    }
+
 
 def add_revenue(name, revenue):
     global business_finance
     if name not in business_finance:
         saved = load_business_finance()
-        business_finance[name] = saved.get(name, {"Revenue": 0, "Profit": 0, "Costs": 0})
+        business_finance[name] = saved.get(
+            name, {"Revenue": 0, "Profit": 0, "Costs": 0}
+        )
     current = business_finance[name].get("Revenue", 0) or 0
     business_finance[name]["Revenue"] = current + revenue
     update_save_finance(name)
+
 
 def financial_summary(name):
     global business_finance
@@ -80,33 +88,37 @@ def financial_summary(name):
     profit = revenue - total_costs
     margin = (profit / revenue * 100) if revenue > 0 else 0
     sym = get_biz_symbol(name)
-    print(f"\n{'='*38}")
+    print(f"\n{'=' * 38}")
     print(f"  FINANCIAL SUMMARY: {name.upper()}")
-    print(f"{'='*38}")
+    print(f"{'=' * 38}")
     print(f"  Revenue:          {sym}{revenue:.2f}")
     print(f"  Recorded Costs:   {sym}{recorded_costs:.2f}")
     print(f"  Monthly Payroll:  {sym}{payroll:.2f}")
     print(f"  Total Costs:      {sym}{total_costs:.2f}")
     print(f"  Net Profit:       {sym}{profit:.2f}")
     print(f"  Profit Margin:    {margin:.1f}%")
-    print(f"{'='*38}")
+    print(f"{'=' * 38}")
     if profit > 0:
         print("  Status: PROFITABLE")
     elif profit == 0:
         print("  Status: BREAKING EVEN")
     else:
         print("  Status: AT A LOSS")
-    return {"Revenue": revenue,
-            "Recorded Costs": recorded_costs,
-            "Monthly Payroll": payroll,
-            "Total Costs": total_costs,
-            "Net Profit": profit,
-            "Profit Margin": margin}
+    return {
+        "Revenue": revenue,
+        "Recorded Costs": recorded_costs,
+        "Monthly Payroll": payroll,
+        "Total Costs": total_costs,
+        "Net Profit": profit,
+        "Profit Margin": margin,
+    }
 
-#_____COSTS______
+
+# _____COSTS______
 def get_monthly_payroll(name):
     employees = load_employees().get(name, [])
     return sum(e.get("salary", 0) for e in employees)
+
 
 def business_costs(name):
     global business_finance
@@ -119,23 +131,31 @@ def business_costs(name):
     print(f"  Recorded Costs:  {sym}{recorded:.2f}")
     print(f"  Monthly Payroll: {sym}{payroll:.2f}")
     print(f"  Total Costs:     {sym}{total:.2f}")
-    return {"Recorded Costs": recorded,
-            "Monthly Payroll": payroll,
-            "Total Costs": total}
+    return {
+        "Recorded Costs": recorded,
+        "Monthly Payroll": payroll,
+        "Total Costs": total,
+    }
+
 
 def add_costs(name, amount, description=""):
     global business_finance
     if name not in business_finance:
         saved = load_business_finance()
-        business_finance[name] = saved.get(name, {"Revenue": 0, "Profit": 0, "Costs": 0})
+        business_finance[name] = saved.get(
+            name, {"Revenue": 0, "Profit": 0, "Costs": 0}
+        )
     current = business_finance[name].get("Costs", 0) or 0
     business_finance[name]["Costs"] = current + amount
     desc_text = f" ({description})" if description else ""
     sym = get_biz_symbol(name)
-    print(f"Cost of {sym}{amount:.2f}{desc_text} recorded. Total costs: {sym}{business_finance[name]['Costs']:.2f}")
+    print(
+        f"Cost of {sym}{amount:.2f}{desc_text} recorded. Total costs: {sym}{business_finance[name]['Costs']:.2f}"
+    )
     update_save_finance(name)
 
-#_____SALARY ADVANCES_____
+
+# _____SALARY ADVANCES_____
 def load_advances():
     try:
         with open(ADVANCEFILE, "r") as f:
@@ -143,19 +163,24 @@ def load_advances():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def save_advances(data):
     with open(ADVANCEFILE, "w") as f:
         json.dump(data, f, indent=4)
 
+
 def get_outstanding_advance(biz, emp_name, advances):
     total = sum(
-        a["amount"] for a in advances.get(biz, [])
+        a["amount"]
+        for a in advances.get(biz, [])
         if a["employee"] == emp_name and not a["repaid"]
     )
     return total
 
+
 def __removed_placeholder():
     pass
+
 
 def __removed_advance_menu_kept_for_data_only():
     advances = load_advances()
@@ -175,7 +200,9 @@ def __removed_advance_menu_kept_for_data_only():
                 for i, e in enumerate(employees, 1):
                     outstanding = get_outstanding_advance(biz, e["name"], advances)
                     net = e["salary"] - outstanding
-                    print(f"  {i}. {e['name']} ({e['role']}) | Salary: {sym}{e['salary']:.2f} | Outstanding Advance: {sym}{outstanding:.2f} | Net Payout: {sym}{net:.2f}")
+                    print(
+                        f"  {i}. {e['name']} ({e['role']}) | Salary: {sym}{e['salary']:.2f} | Outstanding Advance: {sym}{outstanding:.2f} | Net Payout: {sym}{net:.2f}"
+                    )
                 try:
                     idx = int(input("Select employee: ")) - 1
                     if not (0 <= idx < len(employees)):
@@ -188,7 +215,9 @@ def __removed_advance_menu_kept_for_data_only():
                 outstanding = get_outstanding_advance(biz, emp["name"], advances)
                 max_advance = emp["salary"] - outstanding
                 if max_advance <= 0:
-                    print(f"  {emp['name']} has no remaining salary available for an advance.")
+                    print(
+                        f"  {emp['name']} has no remaining salary available for an advance."
+                    )
                     continue
                 print(f"  Max available advance: {sym}{max_advance:.2f}")
                 try:
@@ -200,21 +229,26 @@ def __removed_advance_menu_kept_for_data_only():
                     print("Amount must be greater than zero.")
                     continue
                 if amount > max_advance:
-                    print(f"  Amount exceeds available salary. Max: {sym}{max_advance:.2f}")
+                    print(
+                        f"  Amount exceeds available salary. Max: {sym}{max_advance:.2f}"
+                    )
                     continue
                 reason = input("Reason (press Enter to skip): ").strip()
                 import datetime
+
                 date_str = datetime.date.today().isoformat()
                 if biz not in advances:
                     advances[biz] = []
-                advances[biz].append({
-                    "employee": emp["name"],
-                    "amount": amount,
-                    "date": date_str,
-                    "reason": reason if reason else "Not specified",
-                    "repaid": False,
-                    "repaid_date": None
-                })
+                advances[biz].append(
+                    {
+                        "employee": emp["name"],
+                        "amount": amount,
+                        "date": date_str,
+                        "reason": reason if reason else "Not specified",
+                        "repaid": False,
+                        "repaid_date": None,
+                    }
+                )
                 save_advances(advances)
                 new_outstanding = get_outstanding_advance(biz, emp["name"], advances)
                 net = emp["salary"] - new_outstanding
@@ -233,19 +267,29 @@ def __removed_advance_menu_kept_for_data_only():
                 for a in biz_advances:
                     grouped.setdefault(a["employee"], []).append(a)
                 for emp_name, records in grouped.items():
-                    emp_data = next((e for e in employees if e["name"] == emp_name), None)
+                    emp_data = next(
+                        (e for e in employees if e["name"] == emp_name), None
+                    )
                     salary = emp_data["salary"] if emp_data else 0
                     outstanding = sum(a["amount"] for a in records if not a["repaid"])
                     net = salary - outstanding
                     print(f"\n  {emp_name}")
                     print(f"  {'Date':<12} {'Amount':<12} {'Reason':<20} {'Status'}")
-                    print(f"  {'-'*58}")
+                    print(f"  {'-' * 58}")
                     for a in records:
                         status = "Repaid" if a["repaid"] else "Outstanding"
-                        repaid_note = f" (on {a['repaid_date']})" if a["repaid"] and a["repaid_date"] else ""
-                        print(f"  {a['date']:<12} {sym}{a['amount']:<11.2f} {a['reason']:<20} {status}{repaid_note}")
-                    print(f"  {'-'*58}")
-                    print(f"  Outstanding: {sym}{outstanding:.2f} | Salary: {sym}{salary:.2f} | Net Payout: {sym}{net:.2f}")
+                        repaid_note = (
+                            f" (on {a['repaid_date']})"
+                            if a["repaid"] and a["repaid_date"]
+                            else ""
+                        )
+                        print(
+                            f"  {a['date']:<12} {sym}{a['amount']:<11.2f} {a['reason']:<20} {status}{repaid_note}"
+                        )
+                    print(f"  {'-' * 58}")
+                    print(
+                        f"  Outstanding: {sym}{outstanding:.2f} | Salary: {sym}{salary:.2f} | Net Payout: {sym}{net:.2f}"
+                    )
 
             elif choice == 3:
                 biz_advances = [a for a in advances.get(biz, []) if not a["repaid"]]
@@ -254,7 +298,9 @@ def __removed_advance_menu_kept_for_data_only():
                     continue
                 print(f"\nOutstanding Advances — {biz}:")
                 for i, a in enumerate(biz_advances, 1):
-                    print(f"  {i}. {a['employee']} | {sym}{a['amount']:.2f} on {a['date']} | Reason: {a['reason']}")
+                    print(
+                        f"  {i}. {a['employee']} | {sym}{a['amount']:.2f} on {a['date']} | Reason: {a['reason']}"
+                    )
                 try:
                     sel = int(input("Select advance to mark as repaid: ")) - 1
                     if not (0 <= sel < len(biz_advances)):
@@ -265,17 +311,22 @@ def __removed_advance_menu_kept_for_data_only():
                     print("Invalid input.")
                     continue
                 import datetime
+
                 repaid_date = datetime.date.today().isoformat()
                 for a in advances[biz]:
-                    if (a["employee"] == chosen["employee"] and
-                            a["amount"] == chosen["amount"] and
-                            a["date"] == chosen["date"] and
-                            not a["repaid"]):
+                    if (
+                        a["employee"] == chosen["employee"]
+                        and a["amount"] == chosen["amount"]
+                        and a["date"] == chosen["date"]
+                        and not a["repaid"]
+                    ):
                         a["repaid"] = True
                         a["repaid_date"] = repaid_date
                         break
                 save_advances(advances)
-                print(f"  Advance of {sym}{chosen['amount']:.2f} for {chosen['employee']} marked as repaid on {repaid_date}.")
+                print(
+                    f"  Advance of {sym}{chosen['amount']:.2f} for {chosen['employee']} marked as repaid on {repaid_date}."
+                )
 
             elif choice == 4:
                 break
@@ -284,7 +335,8 @@ def __removed_advance_menu_kept_for_data_only():
         except ValueError:
             print("Invalid input.")
 
-#_____ATTENDANCE_____
+
+# _____ATTENDANCE_____
 def load_attendance():
     try:
         with open(ATTENDANCEFILE, "r") as f:
@@ -292,15 +344,19 @@ def load_attendance():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def save_attendance(data):
     with open(ATTENDANCEFILE, "w") as f:
         json.dump(data, f, indent=4)
 
+
 def __removed_attendance_menu_placeholder():
     pass
 
+
 def __removed_attendance_menu(businesses):
     import datetime
+
     data = load_attendance()
     while True:
         print("\n--- ATTENDANCE ---")
@@ -334,8 +390,12 @@ def __removed_attendance_menu(businesses):
                     continue
                 today = datetime.date.today().isoformat()
                 now = datetime.datetime.now().strftime("%H:%M")
-                confirm = input(f"Clock in {emp_name} at {now}? (Y to confirm or enter custom time HH:MM): ").strip()
-                clock_time = confirm if (":" in confirm and confirm.upper() != "Y") else now
+                confirm = input(
+                    f"Clock in {emp_name} at {now}? (Y to confirm or enter custom time HH:MM): "
+                ).strip()
+                clock_time = (
+                    confirm if (":" in confirm and confirm.upper() != "Y") else now
+                )
                 if biz not in data:
                     data[biz] = {}
                 if today not in data[biz]:
@@ -347,7 +407,14 @@ def __removed_attendance_menu(businesses):
                 if already_in:
                     print(f"{emp_name} is already clocked in today.")
                 else:
-                    data[biz][today].append({"employee": emp_name, "clock_in": clock_time, "clock_out": None, "hours": None})
+                    data[biz][today].append(
+                        {
+                            "employee": emp_name,
+                            "clock_in": clock_time,
+                            "clock_out": None,
+                            "hours": None,
+                        }
+                    )
                     save_attendance(data)
                     print(f"  {emp_name} clocked IN at {clock_time} on {today}.")
 
@@ -358,7 +425,8 @@ def __removed_attendance_menu(businesses):
                     continue
                 today = datetime.date.today().isoformat()
                 open_records = [
-                    (i, r) for i, r in enumerate(data.get(biz, {}).get(today, []))
+                    (i, r)
+                    for i, r in enumerate(data.get(biz, {}).get(today, []))
                     if r.get("clock_out") is None
                 ]
                 if not open_records:
@@ -377,8 +445,12 @@ def __removed_attendance_menu(businesses):
                     print("Invalid input.")
                     continue
                 now = datetime.datetime.now().strftime("%H:%M")
-                confirm = input(f"Clock out {record['employee']} at {now}? (Y to confirm or enter custom time HH:MM): ").strip()
-                clock_time = confirm if (":" in confirm and confirm.upper() != "Y") else now
+                confirm = input(
+                    f"Clock out {record['employee']} at {now}? (Y to confirm or enter custom time HH:MM): "
+                ).strip()
+                clock_time = (
+                    confirm if (":" in confirm and confirm.upper() != "Y") else now
+                )
                 data[biz][today][orig_idx]["clock_out"] = clock_time
                 try:
                     fmt = "%H:%M"
@@ -387,14 +459,18 @@ def __removed_attendance_menu(businesses):
                     hours = round((t_out - t_in).seconds / 3600, 2)
                     data[biz][today][orig_idx]["hours"] = hours
                     save_attendance(data)
-                    print(f"  {record['employee']} clocked OUT at {clock_time}. Hours worked: {hours:.2f}h")
+                    print(
+                        f"  {record['employee']} clocked OUT at {clock_time}. Hours worked: {hours:.2f}h"
+                    )
                 except Exception:
                     save_attendance(data)
                     print(f"  {record['employee']} clocked OUT at {clock_time}.")
 
             elif choice == 3:
                 biz = input("Business Name: ").title()
-                date_input = input("Date (YYYY-MM-DD, or press Enter for today): ").strip()
+                date_input = input(
+                    "Date (YYYY-MM-DD, or press Enter for today): "
+                ).strip()
                 if not date_input:
                     date_input = datetime.date.today().isoformat()
                 records = data.get(biz, {}).get(date_input, [])
@@ -402,12 +478,16 @@ def __removed_attendance_menu(businesses):
                 if not records:
                     print("  No records found for this date.")
                 else:
-                    print(f"  {'Employee':<20} {'Clock In':<10} {'Clock Out':<12} {'Hours'}")
-                    print(f"  {'-'*52}")
+                    print(
+                        f"  {'Employee':<20} {'Clock In':<10} {'Clock Out':<12} {'Hours'}"
+                    )
+                    print(f"  {'-' * 52}")
                     for r in records:
                         clock_out = r.get("clock_out") or "Still in"
                         hours = f"{r['hours']:.2f}h" if r.get("hours") else "---"
-                        print(f"  {r['employee']:<20} {r['clock_in']:<10} {clock_out:<12} {hours}")
+                        print(
+                            f"  {r['employee']:<20} {r['clock_in']:<10} {clock_out:<12} {hours}"
+                        )
 
             elif choice == 4:
                 biz = input("Business Name: ").title()
@@ -430,7 +510,7 @@ def __removed_attendance_menu(businesses):
                 biz_records = data.get(biz, {})
                 print(f"\n--- ATTENDANCE HISTORY: {emp_name.upper()} ---")
                 print(f"  {'Date':<12} {'Clock In':<10} {'Clock Out':<12} {'Hours'}")
-                print(f"  {'-'*48}")
+                print(f"  {'-' * 48}")
                 found = False
                 total_hours = 0.0
                 for date, day_records in sorted(biz_records.items()):
@@ -440,12 +520,14 @@ def __removed_attendance_menu(businesses):
                             hours = r.get("hours") or 0
                             total_hours += hours
                             hours_str = f"{hours:.2f}h" if hours else "---"
-                            print(f"  {date:<12} {r['clock_in']:<10} {clock_out:<12} {hours_str}")
+                            print(
+                                f"  {date:<12} {r['clock_in']:<10} {clock_out:<12} {hours_str}"
+                            )
                             found = True
                 if not found:
                     print("  No attendance records found.")
                 else:
-                    print(f"  {'-'*48}")
+                    print(f"  {'-' * 48}")
                     print(f"  Total Hours Recorded: {total_hours:.2f}h")
 
             elif choice == 5:
@@ -455,7 +537,8 @@ def __removed_attendance_menu(businesses):
         except ValueError:
             print("Invalid input.")
 
-#_____PROFIT TIPS____
+
+# _____PROFIT TIPS____
 def revenue_tips(name):
     global business_finance
     revenue = business_finance.get(name, {}).get("Revenue", 0) or 0
@@ -483,6 +566,7 @@ def revenue_tips(name):
         print("  - Consider premium tiers or subscription-based pricing")
     print(f"\n  Current Revenue: {sym}{revenue:.2f}")
 
+
 def cost_tips(name):
     global business_finance
     data = business_finance.get(name, {})
@@ -502,13 +586,16 @@ def cost_tips(name):
         print(f"\n  Total Costs (inc. payroll): {sym}{total_costs:.2f}")
         print(f"  Cost-to-Revenue Ratio:      {ratio:.1f}%")
         if ratio > 80:
-            print("  WARNING: Costs are very high relative to revenue. Urgent review needed.")
+            print(
+                "  WARNING: Costs are very high relative to revenue. Urgent review needed."
+            )
         elif ratio > 60:
             print("  Your costs are moderate. Look for 2-3 areas to reduce.")
         else:
             print("  Your cost ratio is healthy. Keep monitoring it.")
 
-#____FINANCIAL STORAGE____
+
+# ____FINANCIAL STORAGE____
 def load_business_finance():
     try:
         with open(FINANCEFILE, "r") as file:
@@ -516,9 +603,11 @@ def load_business_finance():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def store_business_finance():
     with open(FINANCEFILE, "w") as file:
         json.dump(business_finance, file, indent=4)
+
 
 def update_save_finance(name):
     existing = business_finance.get(name, {})
@@ -527,11 +616,12 @@ def update_save_finance(name):
     business_finance[name] = {
         "Revenue": round(revenue, 2),
         "Costs": round(costs, 2),
-        "Profit": round(revenue - costs, 2)
+        "Profit": round(revenue - costs, 2),
     }
     store_business_finance()
 
-#____EMPLOYEE STORAGE____
+
+# ____EMPLOYEE STORAGE____
 def load_employees():
     try:
         with open(EMPLOYEEFILE, "r") as f:
@@ -539,11 +629,13 @@ def load_employees():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def save_employees(data):
     with open(EMPLOYEEFILE, "w") as f:
         json.dump(data, f, indent=4)
 
-#____CURRENCY TOOLS____
+
+# ____CURRENCY TOOLS____
 def load_exchange_rates():
     try:
         with open(EXCHANGEFILE, "r") as f:
@@ -551,9 +643,11 @@ def load_exchange_rates():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def save_exchange_rates(data):
     with open(EXCHANGEFILE, "w") as f:
         json.dump(data, f, indent=4)
+
 
 def daily_exchange_rate():
     data = load_exchange_rates()
@@ -605,10 +699,13 @@ def daily_exchange_rate():
         except ValueError:
             print("Invalid input.")
 
+
 def currency_converter():
     data = load_exchange_rates()
     if not data:
-        print("No exchange rates saved. Please add rates first (Exchange Rates option).")
+        print(
+            "No exchange rates saved. Please add rates first (Exchange Rates option)."
+        )
         return
     rate_list = list(data.items())
     print("\n--- CURRENCY CONVERTER ---")
@@ -627,6 +724,7 @@ def currency_converter():
             print("Invalid selection.")
     except ValueError:
         print("Invalid input.")
+
 
 def currency_tools_menu():
     while True:
@@ -647,9 +745,11 @@ def currency_tools_menu():
         except ValueError:
             print("Invalid input.")
 
-#_____MAIN_____
+
+# _____MAIN_____
 def business_finance_menu():
     import business_manager
+
     global business_finance
     business_finance = load_business_finance()
     businesses = business_manager.load_business()
@@ -690,7 +790,9 @@ def business_finance_menu():
                 elif option == 4:
                     try:
                         amount = float(input("Cost amount ($): "))
-                        description = input("Description (press Enter to skip): ").strip()
+                        description = input(
+                            "Description (press Enter to skip): "
+                        ).strip()
                         add_costs(business_name, amount, description)
                     except ValueError:
                         print("Enter a valid amount.")

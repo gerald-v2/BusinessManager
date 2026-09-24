@@ -72,7 +72,7 @@
             <td>
               {% if not sale.refunded %}
               <form method="POST" action="{{ url_for('pos_refund', biz=biz, display_idx=i) }}"
-                    onsubmit="return confirm('Process refund of {{ sym }}{{ \'%.2f\'|format(sale.total) }}?')">
+                    onsubmit="return confirm(&quot;Process refund of {{ sym }}{{ '%.2f'|format(sale.total) }}?&quot;)">
                 <button class="btn btn-sm btn-outline-warning">Refund</button>
               </form>
               {% endif %}
