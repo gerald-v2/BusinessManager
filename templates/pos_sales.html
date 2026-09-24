@@ -51,7 +51,7 @@
             <td class="ps-3 small text-muted">{{ i + 1 }}</td>
             <td class="small">{{ sale.date }}<br><span class="text-muted">{{ sale.time }}</span></td>
             <td class="small">
-              {% for item in sale.items[:2] %}
+              {% for item in sale["items"][:2] %}
               <div>{{ item.product }} ({{ item.variant }}) ×{{ item.qty }}</div>
               {% endfor %}
               {% if sale.items | length > 2 %}<div class="text-muted">+{{ sale.items | length - 2 }} more</div>{% endif %}
