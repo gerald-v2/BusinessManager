@@ -2063,6 +2063,17 @@ def ask_ai(biz):
     return jsonify({
         "response": answer
     })
+
+# ----- NEW OFFLINE SYNC METHOD --------
+@app.route("/api/offline-sync", methods=["POST"])
+def offline_sync():
+    data = request.get_json()
+
+    # Process queued transactions
+
+    return {
+        "success": True
+    }
 # ── RUN ───────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
