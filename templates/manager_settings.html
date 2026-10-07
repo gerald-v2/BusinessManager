@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Manager Settings — {{ biz }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-4"><i class="bi bi-gear-fill me-2 text-primary"></i>Manager Settings — {{ biz }}</h4>
+
+<div class="row g-3">
+  <!-- Manager account -->
+  <div class="col-md-5">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold"><i class="bi bi-shield-lock me-2"></i>Manager Account</div>
+      <div class="card-body">
+        {% if admin %}
+        <div class="alert alert-success py-2 small">Manager account is set up. Username: <strong>{{ admin.username }}</strong></div>
+
+        <!-- Recovery email -->
+        <form method="POST" action="{{ url_for('update_manager_email', biz=biz) }}" class="mb-3">
+          <label class="form-label small fw-semibold">Recovery Email <span class="text-muted fw-normal">(for password reset)</span></label>
+          <div class="input-group input-group-sm">
+            <input type="email" name="email" class="form-control" placeholder="manager@example.com" value="{{ admin.get('email','') }}">
+            <button class="btn btn-outline-primary">Save</button>
+          </div>
+          {% if not admin.get('email') %}
+          <div class="text-warning small mt-1"><i class="bi bi-exclamation-triangle me-1"></i>No recovery email set — forgot password won't work.</div>
+          {% endif %}
+        </form>
+
+        <form method="POST" action="{{ url_for('change_manager_pw', biz=biz) }}">
+          <div class="mb-2"><label class="form-label small fw-semibold">Current Password</label><input type="password" name="old_password" class="form-control form-control-sm" required></div>
+          <div class="mb-2"><label class="form-label small fw-semibold">New Password</label><input type="password" name="new_password" class="form-control form-control-sm" required></div>
+          <div class="mb-3"><label class="form-label small fw-semibold">Confirm New Password</label><input type="password" name="confirm" class="form-control form-control-sm" required></div>
+          <button class="btn btn-warning btn-sm w-100">Change Password</button>
+        </form>
+        {% else %}
+        <div class="alert alert-warning py-2 small">No manager account set up for this business yet.</div>
+        <form method="POST" action="{{ url_for('setup_manager', biz=biz) }}">
+          <div class="mb-2"><label class="form-label small fw-semibold">Username</label><input type="text" name="username" class="form-control form-control-sm" required></div>
+          <div class="mb-2"><label class="form-label small fw-semibold">Recovery Email</label><input type="email" name="email" class="form-control form-control-sm" placeholder="manager@example.com"></div>
+          <div class="mb-2"><label class="form-label small fw-semibold">Password</label><input type="password" name="password" class="form-control form-control-sm" required></div>
+          <div class="mb-3"><label class="form-label small fw-semibold">Confirm Password</label><input type="password" name="confirm" class="form-control form-control-sm" required></div>
+          <button class="btn btn-primary btn-sm w-100">Create Manager Account</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff credentials & permissions -->
+  <div class="col-md-7">
+    {% if not employees %}
+    <div class="card">
+      <div class="card-body text-muted text-center py-4">
+        <i class="bi bi-people fs-2 d-block mb-2"></i>No employees added. <a href="{{ url_for('employees_list', biz=biz) }}">Add employees first</a>.
+      </div>
+    </div>
+    {% else %}
+    {% for i, emp in employees | enumerate %}
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ emp.name }} <span class="badge bg-secondary ms-1">{{ emp.role }}</span></span>
+        {% if emp.get('username') %}
+        <span class="badge bg-success">@{{ emp.username }}</span>
+        {% else %}
+        <span class="badge bg-warning text-dark">No login set</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="row g-2">
+          <!-- Login credentials -->
+          <div class="col-md-6">
+            <div class="small fw-semibold mb-2 text-muted">Login Credentials</div>
+            <form method="POST" action="{{ url_for('set_credentials', biz=biz) }}">
+              <input type="hidden" name="emp_idx" value="{{ i }}">
+              <div class="mb-1"><input type="text" name="username" class="form-control form-control-sm" placeholder="Username" value="{{ emp.get('username','') }}"></div>
+              <div class="mb-1"><input type="password" name="password" class="form-control form-control-sm" placeholder="Password"></div>
+              <div class="mb-2"><input type="password" name="confirm" class="form-control form-control-sm" placeholder="Confirm password"></div>
+              <button class="btn btn-sm btn-outline-primary w-100">Set Credentials</button>
+            </form>
+          </div>
+          <!-- Permissions -->
+          <div class="col-md-6">
+            <div class="small fw-semibold mb-2 text-muted">Module Permissions</div>
+            <form method="POST" action="{{ url_for('set_permissions', biz=biz) }}">
+              <input type="hidden" name="emp_idx" value="{{ i }}">
+              {% set emp_perms = emp.get('permissions', []) %}
+              {% for key in module_order %}
+              <div class="form-check mb-1">
+                <input class="form-check-input" type="checkbox" name="permissions" value="{{ key }}"
+                       id="perm_{{ i }}_{{ key }}" {% if key in emp_perms %}checked{% endif %}>
+                <label class="form-check-label small" for="perm_{{ i }}_{{ key }}">
+                  {{ modules.get(key, key) }}
+                </label>
+              </div>
+              {% endfor %}
+              <button class="btn btn-sm btn-outline-success w-100 mt-2">Save Permissions</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- Sales, VAT & receipts -->
+<div class="card mt-3" id="sales-settings">
+  <div class="card-header fw-semibold"><i class="bi bi-receipt me-2"></i>Sales, VAT &amp; Receipts</div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('manager_sales_settings', biz=biz) }}">
+      <div class="row g-3">
+
+        <div class="col-12 col-md-6">
+          <h6 class="fw-bold">VAT</h6>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" name="vat_enabled" id="vatOn" {% if cfg.vat_enabled %}checked{% endif %}>
+            <label class="form-check-label" for="vatOn">Charge VAT on every sale</label>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small mb-1">VAT rate (%)</label>
+              <input type="number" step="0.01" min="0" max="100" name="vat_pct" class="form-control" value="{{ cfg.vat_pct }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small mb-1">Your prices…</label>
+              <select name="vat_inclusive" class="form-select">
+                <option value="0" {% if not cfg.vat_inclusive %}selected{% endif %}>exclude VAT (VAT added on top)</option>
+                <option value="1" {% if cfg.vat_inclusive %}selected{% endif %}>already include VAT</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small mb-1">VAT / tax number (printed on receipts)</label>
+              <input type="text" name="vat_number" class="form-control" maxlength="40" value="{{ cfg.vat_number }}">
+            </div>
+          </div>
+          <div class="form-text">Use the rate you are registered for. VAT is worked out after any discount and is kept out of your revenue figures.</div>
+
+          <h6 class="fw-bold mt-4">Discounts</h6>
+          <label class="form-label small mb-1">Biggest discount staff may give (% of the sale)</label>
+          <input type="number" step="0.1" min="0" max="100" name="max_staff_discount_pct" class="form-control" value="{{ cfg.max_staff_discount_pct }}">
+          <div class="form-text">Managers are not limited. Set 0 to stop staff giving manual discounts. Loyalty rewards are always allowed.</div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <h6 class="fw-bold">Receipt</h6>
+          <div class="row g-2">
+            <div class="col-12"><label class="form-label small mb-1">Line under business name</label>
+              <input type="text" name="receipt_header" class="form-control" maxlength="80" value="{{ cfg.receipt_header }}"></div>
+            <div class="col-12"><label class="form-label small mb-1">Address</label>
+              <input type="text" name="receipt_address" class="form-control" maxlength="120" value="{{ cfg.receipt_address }}"></div>
+            <div class="col-6"><label class="form-label small mb-1">Phone</label>
+              <input type="text" name="receipt_phone" class="form-control" maxlength="40" value="{{ cfg.receipt_phone }}"></div>
+            <div class="col-6"><label class="form-label small mb-1">Paper width</label>
+              <select name="paper_width" class="form-select">
+                <option value="58" {% if cfg.paper_width == 58 %}selected{% endif %}>58 mm (small)</option>
+                <option value="80" {% if cfg.paper_width == 80 %}selected{% endif %}>80 mm (standard till)</option>
+              </select></div>
+            <div class="col-12"><label class="form-label small mb-1">Footer message</label>
+              <input type="text" name="receipt_footer" class="form-control" maxlength="120" value="{{ cfg.receipt_footer }}"></div>
+          </div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="printer_cut" id="cutOn" {% if cfg.printer_cut %}checked{% endif %}>
+            <label class="form-check-label" for="cutOn">Cut the paper after each receipt (printers with a cutter)</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="auto_print" id="autoOn" {% if cfg.auto_print %}checked{% endif %}>
+            <label class="form-check-label" for="autoOn">Print automatically after each sale (USB / browser / RawBT)</label>
+          </div>
+          <div class="form-text">Pick Bluetooth, USB cable or browser printing on the receipt screen after a sale. The choice is remembered on that device.</div>
+        </div>
+      </div>
+      <button class="btn btn-primary mt-3"><i class="bi bi-check-lg me-1"></i>Save settings</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

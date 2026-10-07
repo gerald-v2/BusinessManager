@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Receipt {{ receipt.receipt_no }} — {{ biz }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <h4 class="fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Receipt {{ receipt.receipt_no }}</h4>
+  <a href="{{ url_for('pos_sales', biz=biz) }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Sales history
+  </a>
+</div>
+
+{% if receipt.refunded %}
+<div class="alert alert-warning py-2">This sale was refunded.</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-12 col-lg-5">
+    <div class="card"><div class="card-body">
+      <pre id="rcPreview" class="mb-0 text-dark bg-white"
+           style="font-size:.8rem;line-height:1.25;overflow-x:auto"></pre>
+    </div></div>
+  </div>
+  <div class="col-12 col-lg-7">
+    <div class="card"><div class="card-body">
+      <h6 class="fw-bold mb-3"><i class="bi bi-printer me-2"></i>Print</h6>
+      <div id="rcControls"></div>
+      <hr>
+      <div class="small text-muted">
+        Receipt width: <strong>{{ receipt.paper_width }}mm</strong> paper.
+        {% if is_manager(biz) %}
+        Change the width, VAT and receipt text in
+        <a href="{{ url_for('manager_settings', biz=biz) }}">Manager Settings</a>.
+        {% endif %}
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='receipt-printer.js') }}"></script>
+<script>
+  const RECEIPT = {{ receipt | tojson }};
+  document.getElementById("rcPreview").textContent = ReceiptPrinter.toText(RECEIPT);
+  ReceiptPrinter.mountControls(document.getElementById("rcControls"), function () { return RECEIPT; });
+</script>
+{% endblock %}
