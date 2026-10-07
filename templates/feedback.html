@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Customer Feedback — {{ biz }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-1"><i class="bi bi-chat-heart me-2 text-danger"></i>Customer Feedback — {{ biz }}</h4>
+<p class="text-muted small mb-4">
+  Write down what customers tell you (in the shop, on WhatsApp, on the phone). Rate it 1–5 stars.
+  Anything rated 1–2 stars is flagged so you remember to follow up. The page then shows your
+  average rating and what customers keep mentioning.
+</p>
+
+<div class="row g-3 mb-4">
+  <!-- Summary -->
+  <div class="col-12 col-lg-4">
+    <div class="card h-100"><div class="card-body">
+      {% if stats.count %}
+      <div class="d-flex align-items-baseline gap-2">
+        <div class="display-5 fw-bold text-warning">{{ stats.avg }}</div>
+        <div class="text-muted">out of 5 · {{ stats.count }} review{{ '' if stats.count == 1 else 's' }}</div>
+      </div>
+      <div class="small mb-3">{{ stats.pct_positive }}% positive (4–5 stars)</div>
+      {% for star in [5,4,3,2,1] %}
+      {% set c = stats.dist[star] %}
+      <div class="d-flex align-items-center gap-2 small mb-1">
+        <span style="width:2.2rem">{{ star }}★</span>
+        <div class="progress flex-grow-1" style="height:8px">
+          <div class="progress-bar {% if star >= 4 %}bg-success{% elif star == 3 %}bg-warning{% else %}bg-danger{% endif %}"
+               style="width:{{ (c / stats.count * 100)|round|int }}%"></div>
+        </div>
+        <span style="width:1.8rem" class="text-end text-muted">{{ c }}</span>
+      </div>
+      {% endfor %}
+      {% if stats.this_month %}
+      <hr class="my-2">
+      <div class="small text-muted">
+        This month: <strong>{{ stats.this_month[0] }}</strong> ({{ stats.this_month[1] }})
+        {% if stats.last_month %} · last month: <strong>{{ stats.last_month[0] }}</strong> ({{ stats.last_month[1] }}){% endif %}
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="text-center text-muted py-4"><i class="bi bi-chat-heart fs-1 d-block mb-2"></i>No feedback yet.<br>Add the first one →</div>
+      {% endif %}
+    </div></div>
+  </div>
+
+  <!-- Add -->
+  <div class="col-12 col-lg-8">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Add feedback</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('feedback_add', biz=biz) }}" class="row g-2">
+          <div class="col-12">
+            <label class="form-label small mb-1">Rating</label>
+            <div class="d-flex gap-3 flex-wrap" id="starPick">
+              {% for n in [1,2,3,4,5] %}
+              <label class="d-flex align-items-center gap-1" style="cursor:pointer">
+                <input type="radio" name="rating" value="{{ n }}" {% if n == 5 %}checked{% endif %}>
+                <span class="{% if n >= 4 %}text-success{% elif n == 3 %}text-warning{% else %}text-danger{% endif %}">{{ n }} ★</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label small mb-1">What did the customer say?</label>
+            <textarea name="review" class="form-control" rows="2" maxlength="600" placeholder="e.g. Lovely balloons but the queue was long"></textarea>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label small mb-1">Customer (optional)</label>
+            <input name="customer" class="form-control form-control-sm" list="fbCustomers" maxlength="60" placeholder="Name">
+            <datalist id="fbCustomers">{% for c in customers %}<option value="{{ c }}">{% endfor %}</datalist>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label small mb-1">About product (optional)</label>
+            <input name="product" class="form-control form-control-sm" list="fbProducts" maxlength="80" placeholder="Product">
+            <datalist id="fbProducts">{% for p in products %}<option value="{{ p }}">{% endfor %}</datalist>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label small mb-1">Where from</label>
+            <select name="source" class="form-select form-select-sm">{% for s in sources %}<option>{{ s }}</option>{% endfor %}</select>
+          </div>
+          <div class="col-12"><button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Save feedback</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if stats.themes or stats.products %}
+<div class="row g-3 mb-4">
+  {% if stats.themes %}
+  <div class="col-12 col-md-6"><div class="card h-100"><div class="card-header fw-semibold">What customers mention</div><div class="card-body">
+    {% for t in stats.themes %}
+    <div class="d-flex justify-content-between small mb-1">
+      <span>{{ t.name }} <span class="text-muted">({{ t.mentions }})</span></span>
+      <span class="{% if t.avg >= 4 %}text-success{% elif t.avg >= 3 %}text-warning{% else %}text-danger{% endif %}">avg {{ t.avg }}★</span>
+    </div>
+    {% endfor %}
+    <div class="form-text">Found by looking for words like "price", "service" or "quality" in the comments.</div>
+  </div></div></div>
+  {% endif %}
+  {% if stats.products %}
+  <div class="col-12 col-md-6"><div class="card h-100"><div class="card-header fw-semibold">By product</div><div class="card-body">
+    {% for p in stats.products %}
+    <div class="d-flex justify-content-between small mb-1"><span>{{ p.name }} <span class="text-muted">({{ p.count }})</span></span><span>avg {{ p.avg }}★</span></div>
+    {% endfor %}
+  </div></div></div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- List -->
+<div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+  <h6 class="fw-bold mb-0 me-2">Reviews</h6>
+  <a class="btn btn-sm {{ 'btn-primary' if flt == 'all' else 'btn-outline-secondary' }}" href="{{ url_for('feedback_page', biz=biz) }}">All</a>
+  <a class="btn btn-sm {{ 'btn-danger' if flt == 'attention' else 'btn-outline-danger' }}" href="{{ url_for('feedback_page', biz=biz, filter='attention') }}">
+    Needs follow-up{% if stats.needs_attention %} ({{ stats.needs_attention }}){% endif %}</a>
+  {% for n in [5,4,3,2,1] %}
+  <a class="btn btn-sm {{ 'btn-primary' if flt == n|string else 'btn-outline-secondary' }}" href="{{ url_for('feedback_page', biz=biz, filter=n) }}">{{ n }}★</a>
+  {% endfor %}
+</div>
+
+{% if not entries %}
+<div class="text-center text-muted py-4">Nothing to show here.</div>
+{% endif %}
+
+{% for e in entries %}
+{% set mood = label(e.rating) %}
+<div class="card mb-2" id="fb_{{ e.id }}">
+  <div class="card-body py-2">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <div>
+        <span class="fw-bold {% if mood == 'positive' %}text-success{% elif mood == 'neutral' %}text-warning{% else %}text-danger{% endif %}">
+          {{ '★' * (e.rating|round|int) }}<span class="text-muted">{{ '★' * (5 - (e.rating|round|int)) }}</span>
+        </span>
+        <span class="badge {% if mood == 'positive' %}bg-success{% elif mood == 'neutral' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ mood }}</span>
+        {% if e.rating <= 2 %}
+          {% if e.resolved %}<span class="badge bg-secondary">followed up</span>{% else %}<span class="badge bg-danger-subtle text-danger border">needs follow-up</span>{% endif %}
+        {% endif %}
+      </div>
+      <div class="small text-muted text-end">{{ e.date }}{% if e.source %} · {{ e.source }}{% endif %}</div>
+    </div>
+    <div class="mt-1">{{ e.review or '—' }}</div>
+    <div class="small text-muted mt-1">
+      {% if e.customer %}<i class="bi bi-person me-1"></i>{{ e.customer }}{% endif %}
+      {% if e.product %}<i class="bi bi-box-seam ms-2 me-1"></i>{{ e.product }}{% endif %}
+    </div>
+    <div class="d-flex gap-2 flex-wrap mt-2">
+      <button type="button" class="btn btn-sm btn-outline-primary" onclick="draftReply('{{ e.id }}')"><i class="bi bi-reply me-1"></i>Draft reply</button>
+      {% if e.rating <= 2 %}
+      <form method="POST" action="{{ url_for('feedback_resolve', biz=biz, entry_id=e.id) }}" class="d-inline">
+        <button class="btn btn-sm btn-outline-success">{{ 'Reopen' if e.resolved else 'Mark followed up' }}</button></form>
+      {% endif %}
+      <form method="POST" action="{{ url_for('feedback_delete', biz=biz, entry_id=e.id) }}" class="d-inline" onsubmit="return confirm('Delete this feedback?')">
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+    </div>
+    <div class="mt-2" id="reply_{{ e.id }}" style="display:none">
+      <textarea class="form-control form-control-sm" rows="3" readonly></textarea>
+      <button type="button" class="btn btn-sm btn-link px-0" onclick="copyReply('{{ e.id }}')">Copy reply</button>
+      <span class="small text-muted">Send it to the customer by WhatsApp, SMS or in person.</span>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<script>
+async function draftReply(id) {
+  const box = document.getElementById("reply_" + id);
+  const area = box.querySelector("textarea");
+  box.style.display = "block";
+  area.value = "Writing…";
+  try {
+    const res = await fetch({{ url_for('feedback_reply', biz=biz, entry_id='__ID__')|tojson }}.replace("__ID__", id), { method: "POST" });
+    const data = await res.json();
+    area.value = data.reply || data.error || "Could not draft a reply.";
+  } catch (e) { area.value = "Could not reach the server."; }
+}
+function copyReply(id) {
+  const area = document.querySelector("#reply_" + id + " textarea");
+  area.select();
+  if (navigator.clipboard) { navigator.clipboard.writeText(area.value); } else { document.execCommand("copy"); }
+}
+</script>
+{% endblock %}
