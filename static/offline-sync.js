@@ -607,6 +607,8 @@ window.addEventListener(
 window.offlineSync = {
 
     queueSale,
+    refreshSnapshot,
+    getSnapshot,
     saveCustomer,
     getCustomers,
     syncCustomers,
