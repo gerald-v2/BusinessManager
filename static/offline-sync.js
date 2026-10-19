@@ -127,6 +127,16 @@ async function getSnapshot(biz) {
     });
 }
 
+async function clearSnapshots() {
+    await dbReady;
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("snapshots", "readwrite");
+        tx.objectStore("snapshots").clear();
+        tx.oncomplete = resolve;
+        tx.onerror = event => reject(event.target.error);
+    });
+}
+
 function businessFromPath() {
     const match = window.location.pathname.match(/^\/biz\/([^/]+)/);
     if (!match) return null;
@@ -687,6 +697,15 @@ if ("serviceWorker" in navigator) {
 // START
 // ------------------------------------------------------------
 
+// Clear private snapshots when a signed-in user explicitly logs out.
+document.addEventListener("click", async function(event) {
+    const link = event.target.closest && event.target.closest('a[href="/logout"]');
+    if (!link) return;
+    try { await clearSnapshots(); } catch (error) {
+        console.warn("Could not clear offline snapshots on logout.", error);
+    }
+}, true);
+
 installOfflineFormQueue();
 
 window.addEventListener(
@@ -716,6 +735,7 @@ window.offlineSync = {
     queueSale,
     refreshSnapshot,
     getSnapshot,
+    clearSnapshots,
     queueFormAction,
     getQueuedActions,
     syncQueuedActions,
