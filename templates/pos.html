@@ -94,7 +94,7 @@
       </button>
     </div>
   </div>
-  <div class="card-body py-2">
+  <div class="card-body py-2" id="posCustomerCardBody">
     {% if active_customer %}
     <div class="d-flex align-items-center justify-content-between">
       <div>
@@ -1874,6 +1874,9 @@ window.addEventListener(
       });
       const customers = await window.offlineSync.getCustomers();
       const saved = customers.find(c => c.id === customer.id) || customer;
+      // Make a newly created offline customer available to this checkout immediately.
+      POS_CFG.customer = { name: saved.name, points: saved.points || 0, tier: null, phone: saved.phone || "" };
+      renderOfflineLinkedCustomer(POS_CFG.customer);
       message.className = "small text-success";
       message.textContent = saved.synced
         ? "Customer saved and synchronized with CRM."
@@ -1895,6 +1898,90 @@ window.addEventListener(
   });
 })();
 
+
+/* ============================================================
+   OFFLINE CUSTOMER LINKING
+   ============================================================ */
+function renderOfflineLinkedCustomer(customer) {
+  const container = document.getElementById("posCustomerCardBody");
+  if (!container) return;
+  container.replaceChildren();
+  if (!customer) {
+    const row = document.createElement("div");
+    row.className = "d-flex align-items-center gap-2";
+    const text = document.createElement("span");
+    text.className = "text-muted small";
+    text.textContent = "No customer linked.";
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "btn btn-sm btn-outline-primary ms-auto";
+    add.textContent = "Add customer";
+    add.onclick = () => bootstrap.Modal.getOrCreateInstance(document.getElementById("addPosCustomerModal")).show();
+    row.append(text, add);
+    container.appendChild(row);
+    return;
+  }
+  const row = document.createElement("div");
+  row.className = "d-flex align-items-center justify-content-between";
+  const info = document.createElement("div");
+  const name = document.createElement("strong");
+  name.textContent = customer.name || "Customer";
+  info.appendChild(name);
+  if (POS_CFG.points_enabled) {
+    const points = document.createElement("span");
+    points.className = "badge bg-warning text-dark ms-2";
+    points.textContent = String(customer.points || 0) + " pts";
+    info.appendChild(points);
+  }
+  if (customer.phone) {
+    const phone = document.createElement("div");
+    phone.className = "text-muted small";
+    phone.textContent = customer.phone;
+    info.appendChild(phone);
+  }
+  const unlink = document.createElement("button");
+  unlink.type = "button";
+  unlink.className = "btn btn-sm btn-outline-secondary";
+  unlink.textContent = "Unlink";
+  unlink.onclick = () => {
+    POS_CFG.customer = null;
+    renderOfflineLinkedCustomer(null);
+  };
+  row.append(info, unlink);
+  container.appendChild(row);
+}
+
+document.addEventListener("submit", async function(event) {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || navigator.onLine) return;
+  const action = new URL(form.action, window.location.origin).pathname;
+  if (!action.endsWith("/pos/link-customer")) return;
+  event.preventDefault();
+  const query = String(new FormData(form).get("query") || "").trim().toLowerCase();
+  if (!query) {
+    POS_CFG.customer = null;
+    renderOfflineLinkedCustomer(null);
+    return;
+  }
+  try {
+    const snapshot = window.offlineSync ? await window.offlineSync.getSnapshot(BIZ_NAME) : null;
+    const local = window.offlineSync ? await window.offlineSync.getCustomers() : [];
+    const known = [...(snapshot && Array.isArray(snapshot.customers) ? snapshot.customers : []), ...local];
+    const match = known.find(c =>
+      String(c.name || "").toLowerCase().includes(query) ||
+      String(c.phone || "").toLowerCase().includes(query)
+    );
+    if (!match) {
+      alert("That customer is not saved on this device. Add the customer offline or reconnect to refresh the customer list.");
+      return;
+    }
+    POS_CFG.customer = { name: match.name, points: match.points || 0, tier: null, phone: match.phone || "" };
+    renderOfflineLinkedCustomer(POS_CFG.customer);
+  } catch (error) {
+    console.error("Offline customer lookup failed:", error);
+    alert("Could not read saved customers on this device.");
+  }
+}, true);
 </script>
 <style>
 .product-card:hover {
