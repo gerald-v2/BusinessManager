@@ -7,7 +7,7 @@ if (window.offlineSync) { return; }
 // ============================================================
 
 const DB_NAME = "BusinessManagerOffline";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let db = null;
 
@@ -53,6 +53,12 @@ function openOfflineDB() {
             if (!database.objectStoreNames.contains("snapshots")) {
                 database.createObjectStore("snapshots", {
                     keyPath: "biz"
+                });
+            }
+
+            if (!database.objectStoreNames.contains("actions")) {
+                database.createObjectStore("actions", {
+                    keyPath: "id"
                 });
             }
         };
@@ -358,6 +364,102 @@ async function syncSale(sale) {
 
 
 // ------------------------------------------------------------
+// OFFLINE FORM ACTION QUEUE (Products / Employees)
+// ------------------------------------------------------------
+async function queueFormAction(form) {
+    await dbReady;
+    const entries = Array.from(new FormData(form).entries()).map(([key, value]) => [key, String(value)]);
+    const action = {
+        id: generateSaleId(),
+        url: new URL(form.action, window.location.origin).pathname,
+        method: "POST",
+        entries,
+        biz: businessFromPath(),
+        created_at: new Date().toISOString(),
+        synced: false
+    };
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction("actions", "readwrite");
+        tx.objectStore("actions").put(action);
+        tx.oncomplete = resolve;
+        tx.onerror = event => reject(event.target.error);
+    });
+    await updateSyncBadge();
+    return action;
+}
+
+async function getQueuedActions() {
+    await dbReady;
+    return new Promise((resolve, reject) => {
+        const request = db.transaction("actions", "readonly").objectStore("actions").getAll();
+        request.onsuccess = () => resolve((request.result || []).sort((a, b) =>
+            a.created_at.localeCompare(b.created_at)));
+        request.onerror = event => reject(event.target.error);
+    });
+}
+
+async function removeQueuedAction(id) {
+    await dbReady;
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("actions", "readwrite");
+        tx.objectStore("actions").delete(id);
+        tx.oncomplete = resolve;
+        tx.onerror = event => reject(event.target.error);
+    });
+}
+
+async function syncQueuedActions() {
+    if (!navigator.onLine) return;
+    const actions = await getQueuedActions();
+    for (const action of actions) {
+        try {
+            const body = new URLSearchParams();
+            action.entries.forEach(([key, value]) => body.append(key, value));
+            const response = await fetch(action.url, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                body: body.toString(),
+                redirect: "follow"
+            });
+            if (response.url.includes("/business-login") || response.url.includes("/admin/login")) break;
+            if (!response.ok) break;
+            const html = await response.clone().text();
+            // Validation/access errors are not silently discarded; keep them queued.
+            if (/alert-danger|Access denied|not logged in/i.test(html)) {
+                console.error("Offline change needs attention and remains queued:", action.url);
+                break;
+            }
+            await removeQueuedAction(action.id);
+        } catch (error) {
+            console.log("Offline form changes will retry later.", error);
+            break;
+        }
+    }
+    await updateSyncBadge();
+}
+
+function installOfflineFormQueue() {
+    document.addEventListener("submit", async event => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement) || navigator.onLine) return;
+        if ((form.method || "get").toUpperCase() !== "POST") return;
+        const path = new URL(form.action, window.location.origin).pathname;
+        // Keep POS checkout on its existing, feature-preserving local sale flow.
+        const isProductsOrEmployees = /^\/biz\/[^/]+\/(?:products(?:\/.*)?|employees(?:\/.*)?|attendance\/quick)\/?$/.test(path);
+        if (!isProductsOrEmployees) return;
+        event.preventDefault();
+        try {
+            await queueFormAction(form);
+            alert("Saved on this device and queued to sync when internet returns. The displayed list may not update until the change syncs.");
+        } catch (error) {
+            console.error("Could not queue offline change:", error);
+            alert("BizManager could not save this change locally. Please keep this page open and try again.");
+        }
+    }, true);
+}
+
+// ------------------------------------------------------------
 // SYNC EVERYTHING
 // ------------------------------------------------------------
 
@@ -421,6 +523,7 @@ async function syncCustomers() {
 async function syncOfflineData() {
     if (!navigator.onLine) return;
     await syncCustomers();
+    await syncQueuedActions();
     const sales = await getQueuedSales();
     if (sales.length > 0) {
         console.log(`Attempting to sync ${sales.length} sale(s)`);
@@ -459,7 +562,8 @@ async function updateSyncBadge() {
 
     const sales = await getQueuedSales();
     const customers = (await getCustomers()).filter(c => !c.synced);
-    const pending = sales.length + customers.length;
+    const actions = await getQueuedActions();
+    const pending = sales.length + customers.length + actions.length;
     if (pending === 0) {
         badge.style.display = "none";
         return;
@@ -468,6 +572,7 @@ async function updateSyncBadge() {
     const parts = [];
     if (sales.length) parts.push(sales.length + " sale(s)");
     if (customers.length) parts.push(customers.length + " customer(s)");
+    if (actions.length) parts.push(actions.length + " product/employee change(s)");
     badge.textContent = parts.join(" + ") + " waiting to sync";
 }
 
@@ -582,6 +687,8 @@ if ("serviceWorker" in navigator) {
 // START
 // ------------------------------------------------------------
 
+installOfflineFormQueue();
+
 window.addEventListener(
     "load",
     async function() {
@@ -609,6 +716,9 @@ window.offlineSync = {
     queueSale,
     refreshSnapshot,
     getSnapshot,
+    queueFormAction,
+    getQueuedActions,
+    syncQueuedActions,
     saveCustomer,
     getCustomers,
     syncCustomers,
