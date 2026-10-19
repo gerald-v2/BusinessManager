@@ -2563,6 +2563,52 @@ def offline_sync():
     return {
         "success": True
     }
+# Read-only snapshot used to prime the device's local offline database.
+@app.route('/api/offline/snapshot/<biz>')
+def api_offline_snapshot(biz):
+    if not session.get('user_type'):
+        return jsonify({'status': 'error', 'error': 'not logged in'}), 401
+    if session.get('user_type') not in ('system_admin',) and session.get('biz') != biz:
+        return jsonify({'status': 'error', 'error': 'access denied'}), 403
+
+    allowed = {
+        'pos': _can_access(biz, 'pos'),
+        'products': _can_access(biz, 'products'),
+        'customers': _can_access(biz, 'crm') or _can_access(biz, 'pos'),
+        'employees': _can_access(biz, 'employees'),
+    }
+    businesses = _load_biz()
+    if biz not in businesses:
+        return jsonify({'status': 'error', 'error': 'business not found'}), 404
+
+    products = {}
+    if allowed['pos'] or allowed['products']:
+        products = businesses.get(biz, {}).get('products', {})
+        # POS-only staff need selling prices and stock, not confidential cost prices.
+        if not allowed['products']:
+            products = json.loads(json.dumps(products))
+            for details in products.values():
+                details.pop('Cost', None)
+                for variant in details.get('variants', []):
+                    variant.pop('Cost', None)
+
+    customers = crm_mod._load_raw().get(biz, []) if allowed['customers'] else []
+    employees = []
+    if allowed['employees']:
+        employees = [
+            {key: emp.get(key) for key in ('name', 'role', 'salary', 'notes')}
+            for emp in bf.load_employees().get(biz, [])
+        ]
+
+    return jsonify({
+        'status': 'ok',
+        'biz': biz,
+        'captured_at': datetime.datetime.now().isoformat(),
+        'products': products,
+        'customers': customers,
+        'employees': employees,
+    })
+
 # Serve the service worker from the site root so it can control /biz/.../pos
 # (a worker served from /static/ can only control URLs under /static/).
 @app.route('/service-worker.js')
