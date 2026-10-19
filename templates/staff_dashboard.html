@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}My Shift — {{ biz }}{% endblock %}
+{% block content %}
+
+<div class="mb-4">
+  <h4 class="fw-bold mb-0">Hi, {{ emp_name }}</h4>
+  <small class="text-muted">{{ biz }} · {{ today_label }}</small>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Shift -->
+  <div class="col-12 col-lg-5">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-alarm me-2 text-primary"></i>My shift</div>
+      <div class="card-body">
+        <div id="shiftStatus" class="fs-5 fw-semibold mb-1"></div>
+        <div id="shiftSub" class="small text-muted mb-3"></div>
+        <button type="button" id="shiftBtn" class="btn btn-lg w-100"></button>
+        <div id="shiftMsg" class="small mt-2" style="min-height:1.2rem"></div>
+        <span id="attendanceSyncBadge" class="badge bg-warning text-dark" style="display:none"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Numbers that are about ME only -->
+  <div class="col-12 col-lg-7">
+    <div class="row g-3 h-100">
+      <div class="col-6">
+        <div class="stat-card bg-secondary h-100">
+          <div class="lbl">Hours today</div>
+          <div class="val">{{ '%.1f'|format(hours_today) }}</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="stat-card bg-secondary h-100">
+          <div class="lbl">Hours this week</div>
+          <div class="val">{{ '%.1f'|format(week_hours) }}</div>
+        </div>
+      </div>
+      {% if can_access(biz, 'pos') %}
+      <div class="col-6">
+        <div class="stat-card bg-success h-100">
+          <div class="lbl">My sales today</div>
+          <div class="val">{{ my_sales_count }}</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="stat-card bg-primary h-100">
+          <div class="lbl">Taken at till</div>
+          <div class="val">{{ sym }}{{ '%.2f'|format(my_sales_total) }}</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Shortcuts: only what this person is allowed to use -->
+{% if my_modules %}
+<div class="row g-3 mb-4">
+  {% for m in my_modules %}
+  <div class="col-6 col-md-4 col-xl-3">
+    <a href="{{ m.url }}" class="text-decoration-none">
+      <div class="card h-100 portal-card p-3" style="width:auto">
+        <div class="text-primary mb-2"><i class="bi {{ m.icon }} fs-3"></i></div>
+        <div class="fw-bold">{{ m.label }}</div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+  No sections have been assigned to you yet. Ask your manager to give you access.
+</div>
+{% endif %}
+
+{% if low_stock %}
+<div class="card">
+  <div class="card-header"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Running low</div>
+  <ul class="list-group list-group-flush">
+    {% for item in low_stock %}
+    <li class="list-group-item low-stock-row d-flex justify-content-between">
+      <span class="small">{{ item.product }} <span class="text-muted">({{ item.variant }})</span></span>
+      <span class="badge bg-danger">{{ item.units }} left</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const BIZ = {{ biz|tojson }};
+  const ME = {{ emp_name|tojson }};
+  const EMBED_DATE = {{ today|tojson }};
+  let openSince = {{ open_time|tojson }};          // "08:02" or ""
+
+  const $ = id => document.getElementById(id);
+
+  async function computeState() {
+    if (EMBED_DATE !== window.attendanceSync.localDate()) { openSince = ""; }
+    const queued = await window.attendanceSync.all();
+    queued.filter(e => e.biz === BIZ && e.employee === ME && e.date === window.attendanceSync.localDate())
+          .sort((a, b) => a.created - b.created)
+          .forEach(e => { openSince = e.action === "in" ? e.time : ""; });
+    render();
+  }
+
+  function render() {
+    const btn = $("shiftBtn");
+    if (openSince) {
+      $("shiftStatus").innerHTML = '<span class="text-success"><i class="bi bi-circle-fill me-2" style="font-size:.6rem"></i>Clocked in</span>';
+      $("shiftSub").textContent = "Since " + openSince;
+      btn.className = "btn btn-danger btn-lg w-100";
+      btn.textContent = "Clock out";
+    } else {
+      $("shiftStatus").textContent = "Not clocked in";
+      $("shiftSub").textContent = "Clock in when you start your shift.";
+      btn.className = "btn btn-success btn-lg w-100";
+      btn.textContent = "Clock in";
+    }
+  }
+
+  $("shiftBtn").addEventListener("click", async () => {
+    const action = openSince ? "out" : "in";
+    const ev = window.attendanceSync.makeEvent(BIZ, ME, action, "", "self");
+    await window.attendanceSync.queue(ev);
+    openSince = action === "in" ? ev.time : "";
+    render();
+    const msg = $("shiftMsg");
+    msg.className = "small mt-2 text-success";
+    msg.textContent = (action === "in" ? "Clocked in at " : "Clocked out at ") + ev.time +
+                      (navigator.onLine ? "." : " (saved offline, will sync).");
+    window.attendanceSync.updateBadge();
+    window.attendanceSync.sync();
+  });
+
+  window.addEventListener("load", computeState);
+})();
+</script>
+{% endblock %}

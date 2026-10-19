@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Quick Clock — {{ biz }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-alarm me-2 text-primary"></i>Quick Clock</h4>
+    <small class="text-muted">{{ today_label }}</small>
+  </div>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <span id="attendanceSyncBadge" class="badge bg-warning text-dark" style="display:none"></span>
+    <span id="qcOnline" class="badge bg-success"><i class="bi bi-wifi me-1"></i>Online</span>
+    <a href="{{ url_for('attendance', biz=biz) }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-list-ul me-1"></i>Records
+    </a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-2 d-flex align-items-center justify-content-between gap-3 flex-wrap">
+    <div id="qcSummary" class="fw-semibold"></div>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <label class="form-label mb-0" for="qcTime">Different time?</label>
+      <input type="time" id="qcTime" class="form-control form-control-sm" style="width:130px">
+      <button type="button" class="btn btn-sm btn-outline-success" id="qcAll">
+        <i class="bi bi-check2-all me-1"></i>Clock in everyone
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="qcMsg" class="small mb-2" style="min-height:1.2rem"></div>
+
+{% if not people %}
+<div class="card text-center py-5 text-muted">
+  <i class="bi bi-people fs-1 d-block mb-2"></i>
+  No employees yet. <a href="{{ url_for('employees_list', biz=biz) }}">Add employees</a> to clock them in here.
+</div>
+{% endif %}
+
+<div class="row g-3" id="qcGrid"></div>
+
+<div class="small text-muted mt-3">
+  Leave the time empty to use the time right now. Works without internet: open this page once while online on
+  each device, and clock events sync automatically when the connection returns.
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const BIZ = {{ biz|tojson }};
+  const PEOPLE = {{ people|tojson }};
+  const EMBED_DATE = {{ today|tojson }};
+  const EMBED_OPEN = {{ open_now|tojson }};
+  const STATE_URL = {{ url_for('api_attendance_state', biz=biz)|tojson }};
+  const KEY = "bm_att_state_" + BIZ;
+
+  let state = {};                       // name -> { in: "08:12" } while clocked in
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  function today() { return window.attendanceSync.localDate(); }
+
+  function applyEvent(e) {
+    if (e.action === "in") { state[e.employee] = { in: e.time }; }
+    else { delete state[e.employee]; }
+  }
+
+  /* Server state + anything still waiting in the queue. Offline: use the
+     last state saved on this device. */
+  async function computeState() {
+    let base = EMBED_DATE === today() ? EMBED_OPEN : {};
+    let restored = false;
+    if (navigator.onLine) {
+      try {
+        const r = await fetch(STATE_URL, { cache: "no-store" });
+        if (r.ok) { base = (await r.json()).open || {}; }
+      } catch (e) { /* keep embedded state */ }
+    } else {
+      try {
+        const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+        if (saved && saved.date === today()) { state = saved.state || {}; restored = true; }
+      } catch (e) { /* ignore */ }
+    }
+    if (!restored) {
+      state = {};
+      Object.keys(base).forEach(n => { state[n] = { in: base[n] }; });
+      const queued = await window.attendanceSync.all();
+      queued.filter(e => e.biz === BIZ && e.date === today())
+            .sort((a, b) => a.created - b.created).forEach(applyEvent);
+    }
+    render();
+  }
+
+  function render() {
+    const grid = $("qcGrid");
+    let inCount = 0;
+    grid.innerHTML = PEOPLE.map(p => {
+      const open = state[p.name];
+      if (open) { inCount++; }
+      const worked = p.hours > 0 ? '<div class="small text-muted">Earlier today: ' + p.hours + ' h</div>' : "";
+      const login = p.has_login ? "" : '<span class="badge bg-secondary ms-1">no login</span>';
+      return '<div class="col-12 col-sm-6 col-xl-4"><div class="card h-100"><div class="card-body">' +
+        '<div class="d-flex align-items-center gap-3 mb-3">' +
+          '<div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" ' +
+               'style="width:46px;height:46px;background:var(--gold-glow);color:var(--gold-light);font-weight:700">' +
+               esc((p.name || "?").charAt(0).toUpperCase()) + '</div>' +
+          '<div class="min-w-0"><div class="fw-bold text-truncate">' + esc(p.name) + login + '</div>' +
+          '<div class="small text-muted">' + esc(p.role || "") + '</div>' + worked + '</div>' +
+        '</div>' +
+        (open
+          ? '<div class="small text-success mb-2"><i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>In since ' + esc(open.in) + '</div>' +
+            '<button type="button" class="btn btn-danger btn-lg w-100" data-name="' + esc(p.name) + '" data-action="out">Clock out</button>'
+          : '<div class="small text-muted mb-2">Not clocked in</div>' +
+            '<button type="button" class="btn btn-success btn-lg w-100" data-name="' + esc(p.name) + '" data-action="in">Clock in</button>') +
+        '</div></div></div>';
+    }).join("");
+    $("qcSummary").textContent = inCount + " in · " + (PEOPLE.length - inCount) + " not in";
+    try { localStorage.setItem(KEY, JSON.stringify({ date: today(), state: state })); } catch (e) {}
+  }
+
+  function say(text, bad) {
+    const el = $("qcMsg");
+    el.textContent = text;
+    el.className = "small mb-2 " + (bad ? "text-danger" : "text-success");
+  }
+
+  function chosenTime() {
+    const t = $("qcTime").value;
+    return /^\d{2}:\d{2}$/.test(t) ? t : "";
+  }
+
+  async function clock(name, action) {
+    const ev = window.attendanceSync.makeEvent(BIZ, name, action, chosenTime(), "quick");
+    await window.attendanceSync.queue(ev);          // saved on this device first
+    applyEvent(ev);
+    render();
+    say(name + (action === "in" ? " clocked in at " : " clocked out at ") + ev.time +
+        (navigator.onLine ? "." : " (saved offline, will sync)."));
+    window.attendanceSync.updateBadge();
+    window.attendanceSync.sync();
+  }
+
+  $("qcGrid").addEventListener("click", e => {
+    const b = e.target.closest("button[data-name]");
+    if (b) { clock(b.dataset.name, b.dataset.action); }
+  });
+
+  $("qcAll").addEventListener("click", async () => {
+    const todo = PEOPLE.filter(p => !state[p.name]);
+    if (!todo.length) { say("Everyone is already clocked in."); return; }
+    if (!confirm("Clock in " + todo.length + " people?")) { return; }
+    for (const p of todo) { await clock(p.name, "in"); }
+  });
+
+  function showOnline() {
+    const el = $("qcOnline");
+    el.className = "badge " + (navigator.onLine ? "bg-success" : "bg-danger");
+    el.innerHTML = navigator.onLine
+      ? '<i class="bi bi-wifi me-1"></i>Online'
+      : '<i class="bi bi-wifi-off me-1"></i>Offline — clock events are saved on this device';
+  }
+
+  window.addEventListener("online", () => { showOnline(); window.attendanceSync.sync(); });
+  window.addEventListener("offline", showOnline);
+  document.addEventListener("attendance-synced", computeState);
+  window.addEventListener("load", () => { showOnline(); computeState(); });
+})();
+</script>
+{% endblock %}
