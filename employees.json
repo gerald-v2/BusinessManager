@@ -1,43 +1,80 @@
 {
-  "Beta Test": [
-    {
-      "name": "Denzel Ngara",
-      "notes": "",
-      "password": "ILOVEANE",
-      "permissions": [
-        "pos",
-        "crm"
-      ],
-      "role": "Manager",
-      "salary": 20.0,
-      "username": "denzel.tn"
-    }
-  ],
-  "House Of Stembii": [
-    {
-      "name": "Gerald",
-      "password": "Coge2008",
-      "permissions": [
-        "pos",
-        "crm"
-      ],
-      "role": "Manager",
-      "salary": 492.0,
-      "username": "gerry.ny"
-    },
-    {
-      "name": "Constantine",
-      "notes": "",
-      "password": "Coge2008",
-      "permissions": [
-        "products",
-        "pos",
-        "crm",
-        "employees"
-      ],
-      "role": "Senior Manager",
-      "salary": 350.0,
-      "username": "conny.ny"
-    }
-  ]
+    "Beta Test": [
+        {
+            "name": "Denzel Ngara",
+            "notes": "",
+            "password": "ILOVEANE",
+            "permissions": [
+                "pos",
+                "crm"
+            ],
+            "role": "Manager",
+            "salary": 20.0,
+            "username": "denzel.tn"
+        }
+    ],
+    "House Of Stembii": [
+        {
+            "name": "Gerald",
+            "password": "Coge2008",
+            "permissions": [
+                "pos",
+                "crm"
+            ],
+            "role": "Manager",
+            "salary": 492.0,
+            "username": "gerry.ny"
+        },
+        {
+            "name": "Constantine",
+            "notes": "",
+            "password": "Coge2008",
+            "permissions": [
+                "products",
+                "pos",
+                "crm",
+                "employees"
+            ],
+            "role": "Senior Manager",
+            "salary": 350.0,
+            "username": "conny.ny"
+        }
+    ],
+    "Testing": [
+        {
+            "name": "Gerald Nyahada",
+            "notes": "",
+            "password": "Coge2008",
+            "permissions": [
+                "pos"
+            ],
+            "role": "Sales",
+            "salary": 100.0,
+            "username": "gtrenn"
+        }
+    ],
+    "Apple": [
+        {
+            "name": "Kane",
+            "role": "Sales",
+            "salary": 2000.0,
+            "notes": "",
+            "username": "kenny",
+            "password": "scrypt:32768:8:1$ZoEcCTyEDpKcWz58$09c2e37b437e4b27846122594edb28fbfcfd8df0459a185997169524e172b3a52178f5a9dbf56537e2bc3b6ee902a88f574049f80b4e8ff7118e1a798624176b",
+            "permissions": [
+                "pos"
+            ]
+        },
+        {
+            "name": "Tinten",
+            "role": "Balloon Fixing",
+            "salary": 3000.0,
+            "notes": "",
+            "username": "kingstone",
+            "password": "scrypt:32768:8:1$jAQ5qwz9Fw59ilta$511be03f455636eabf34b203d4f9766a809530376a36c2e48a051034fb7efae8c2b893d5babc8570a1fc9dace4a5050f7a4d7538545dd2f3e9d1193b63207e87",
+            "permissions": [
+                "pos"
+            ]
+        }
+    ]
 }

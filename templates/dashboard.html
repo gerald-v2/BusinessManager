@@ -89,6 +89,9 @@
     <div class="card h-100">
       <div class="card-header"><i class="bi bi-lightning-fill me-2 text-warning"></i>Quick Actions</div>
       <div class="card-body d-grid gap-2">
+        {% if can_access(biz, 'employees') %}
+        <a href="{{ url_for('quick_clock', biz=biz) }}" class="btn btn-outline-success"><i class="bi bi-alarm me-2"></i>Quick Clock</a>
+        {% endif %}
         {% if can_access(biz, 'pos') %}
         <a href="{{ url_for('pos', biz=biz) }}" class="btn btn-success"><i class="bi bi-cart3 me-2"></i>Open POS</a>
         {% endif %}

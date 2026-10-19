@@ -1,6 +1,6 @@
 {
   "admin": {
-    "password": "Coge2008",
+    "password": "scrypt:32768:8:1$qUjhMAnflu98EIss$2049c98a2ef791316e7ff5adc9d3e451ed13034a34de194a6ea4d0ed29c0628062cf83a16fd8135e0c90e58397ce5229d85acb968dc1bc61f4f389b05b78014e",
     "role": "admin"
   },
   "beta-testing": {

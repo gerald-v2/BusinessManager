@@ -1,127 +1,297 @@
 {
-  "House Of Stembii": [
-    {
-      "email": "geraldnya54@gmail.com",
-      "joined": "2026-05-10",
-      "name": "Herald",
-      "notes": "",
-      "phone": "0780589995",
-      "points": 2950,
-      "purchases": [
+    "House Of Stembii": [
         {
-          "date": "2026-05-10",
-          "items": [
-            {
-              "plu": "1000",
-              "product": "100Pcs Balloons",
-              "qty": 20,
-              "subtotal": 2000.0,
-              "unit_price": 100.0,
-              "variant": "Red"
-            },
-            {
-              "plu": "0001",
-              "product": "Lights",
-              "qty": 4,
-              "subtotal": 100.0,
-              "unit_price": 25.0,
-              "variant": "Bue"
-            }
-          ],
-          "points_earned": 2421,
-          "time": "12:43",
-          "total": 2421.3
+            "email": "geraldnya54@gmail.com",
+            "joined": "2026-05-10",
+            "name": "Herald",
+            "notes": "",
+            "phone": "0780589995",
+            "points": 2950,
+            "purchases": [
+                {
+                    "date": "2026-05-10",
+                    "items": [
+                        {
+                            "plu": "1000",
+                            "product": "100Pcs Balloons",
+                            "qty": 20,
+                            "subtotal": 2000.0,
+                            "unit_price": 100.0,
+                            "variant": "Red"
+                        },
+                        {
+                            "plu": "0001",
+                            "product": "Lights",
+                            "qty": 4,
+                            "subtotal": 100.0,
+                            "unit_price": 25.0,
+                            "variant": "Bue"
+                        }
+                    ],
+                    "points_earned": 2421,
+                    "time": "12:43",
+                    "total": 2421.3
+                },
+                {
+                    "date": "2026-05-10",
+                    "items": [
+                        {
+                            "plu": "1000",
+                            "product": "100Pcs Balloons",
+                            "qty": 20,
+                            "subtotal": 2000.0,
+                            "unit_price": 100.0,
+                            "variant": "Red"
+                        },
+                        {
+                            "plu": "0001",
+                            "product": "Lights",
+                            "qty": 4,
+                            "subtotal": 100.0,
+                            "unit_price": 25.0,
+                            "variant": "Bue"
+                        }
+                    ],
+                    "points_earned": 1029,
+                    "time": "13:18",
+                    "total": 1690.5
+                }
+            ]
         },
         {
-          "date": "2026-05-10",
-          "items": [
-            {
-              "plu": "1000",
-              "product": "100Pcs Balloons",
-              "qty": 20,
-              "subtotal": 2000.0,
-              "unit_price": 100.0,
-              "variant": "Red"
-            },
-            {
-              "plu": "0001",
-              "product": "Lights",
-              "qty": 4,
-              "subtotal": 100.0,
-              "unit_price": 25.0,
-              "variant": "Bue"
-            }
-          ],
-          "points_earned": 1029,
-          "time": "13:18",
-          "total": 1690.5
+            "email": "",
+            "joined": "2026-05-10",
+            "name": "Linda",
+            "notes": "",
+            "phone": "0779867211",
+            "points": 0
+        },
+        {
+            "email": "",
+            "joined": "2026-05-10",
+            "name": "John",
+            "notes": "",
+            "phone": "072332313",
+            "points": 858,
+            "purchases": [
+                {
+                    "date": "2026-05-10",
+                    "items": [
+                        {
+                            "plu": "1003",
+                            "product": "100Pcs Balloons",
+                            "qty": 10,
+                            "subtotal": 1000.0,
+                            "unit_price": 100.0,
+                            "variant": "Royal Blue"
+                        },
+                        {
+                            "plu": "0002",
+                            "product": "Lights",
+                            "qty": 7,
+                            "subtotal": 175.0,
+                            "unit_price": 25.0,
+                            "variant": "Green"
+                        }
+                    ],
+                    "points_earned": 858,
+                    "time": "13:16",
+                    "total": 1410.0
+                }
+            ]
         }
-      ]
+    ],
+    "Testing": [
+        {
+            "dob": "2008-06-12",
+            "email": "",
+            "joined": "2026-09-23",
+            "name": "Kane",
+            "notes": "",
+            "phone": "",
+            "points": 640,
+            "purchases": [
+                {
+                    "date": "2026-09-23",
+                    "items": [
+                        {
+                            "plu": "1000",
+                            "product": "T-Shirt",
+                            "qty": 8,
+                            "subtotal": 80.0,
+                            "unit_price": 10.0,
+                            "variant": "Red Shirt"
+                        }
+                    ],
+                    "points_earned": 800,
+                    "time": "09:42",
+                    "total": 80.0
+                },
+                {
+                    "date": "2026-09-23",
+                    "items": [
+                        {
+                            "plu": "1000",
+                            "product": "T-Shirt",
+                            "qty": 1,
+                            "subtotal": 10.0,
+                            "unit_price": 10.0,
+                            "variant": "Red Shirt"
+                        }
+                    ],
+                    "points_earned": 90,
+                    "time": "10:04",
+                    "total": 9.0
+                }
+            ]
+        }
+    ],
+    "_config": {
+        "House Of Stembii": {
+            "points_enabled": true,
+            "points_per_dollar": 10.0,
+            "tiers": [
+                {
+                    "discount_pct": 10.0,
+                    "label": "Silver",
+                    "points": 100
+                },
+                {
+                    "discount_pct": 20.0,
+                    "label": "Supreme",
+                    "points": 300
+                },
+                {
+                    "discount_pct": 30.0,
+                    "label": "Elite",
+                    "points": 500
+                }
+            ]
+        },
+        "Testing": {
+            "points_enabled": true,
+            "points_per_dollar": 10,
+            "tiers": [
+                {
+                    "discount_pct": 5,
+                    "label": "Silver",
+                    "points": 100
+                },
+                {
+                    "discount_pct": 10,
+                    "label": "Gold",
+                    "points": 250
+                },
+                {
+                    "discount_pct": 2.0,
+                    "label": "Balloon Tier",
+                    "points": 1000
+                }
+            ]
+        },
+        "Apple": {
+            "points_enabled": true,
+            "points_per_dollar": 1,
+            "tiers": [
+                {
+                    "points": 100,
+                    "discount_pct": 5,
+                    "label": "Silver"
+                },
+                {
+                    "points": 250,
+                    "discount_pct": 10,
+                    "label": "Gold"
+                },
+                {
+                    "points": 500,
+                    "discount_pct": 15,
+                    "label": "Platinum"
+                },
+                {
+                    "points": 5000,
+                    "discount_pct": 30.0,
+                    "label": "Supreme Tier"
+                },
+                {
+                    "points": 20000,
+                    "discount_pct": 60.0,
+                    "label": "Elite Tier"
+                }
+            ]
+        }
     },
-    {
-      "email": "",
-      "joined": "2026-05-10",
-      "name": "Linda",
-      "notes": "",
-      "phone": "0779867211",
-      "points": 0
-    },
-    {
-      "email": "",
-      "joined": "2026-05-10",
-      "name": "John",
-      "notes": "",
-      "phone": "072332313",
-      "points": 858,
-      "purchases": [
+    "Apple": [
         {
-          "date": "2026-05-10",
-          "items": [
-            {
-              "plu": "1003",
-              "product": "100Pcs Balloons",
-              "qty": 10,
-              "subtotal": 1000.0,
-              "unit_price": 100.0,
-              "variant": "Royal Blue"
-            },
-            {
-              "plu": "0002",
-              "product": "Lights",
-              "qty": 7,
-              "subtotal": 175.0,
-              "unit_price": 25.0,
-              "variant": "Green"
-            }
-          ],
-          "points_earned": 858,
-          "time": "13:16",
-          "total": 1410.0
+            "name": "Gerald Nyahada",
+            "phone": "0780589995",
+            "email": "gerald@gmail.com",
+            "notes": "",
+            "dob": "2008-06-12",
+            "joined": "2026-10-08",
+            "points": 2783400,
+            "purchases": [
+                {
+                    "date": "2026-10-08",
+                    "time": "09:05",
+                    "items": [
+                        {
+                            "product": "Ipad",
+                            "variant": "Green",
+                            "plu": "1200",
+                            "qty": 10,
+                            "unit_price": 20000.0,
+                            "unit_cost": 10000.0,
+                            "subtotal": 200000.0
+                        },
+                        {
+                            "product": "Iphone",
+                            "variant": "Red",
+                            "plu": "0001",
+                            "qty": 20,
+                            "unit_price": 1200.0,
+                            "unit_cost": 500.0,
+                            "subtotal": 24000.0
+                        }
+                    ],
+                    "total": 224000.0,
+                    "points_earned": 2240000
+                },
+                {
+                    "date": "2026-10-08",
+                    "time": "09:05",
+                    "items": [
+                        {
+                            "product": "Iphone",
+                            "variant": "Green",
+                            "plu": "0003",
+                            "qty": 1,
+                            "unit_price": 1200.0,
+                            "unit_cost": 500.0,
+                            "subtotal": 1200.0
+                        }
+                    ],
+                    "total": 840.0,
+                    "points_earned": 8400
+                },
+                {
+                    "date": "2026-10-08",
+                    "time": "09:07",
+                    "items": [
+                        {
+                            "product": "Ipad",
+                            "variant": "White",
+                            "plu": "1000",
+                            "qty": 7,
+                            "unit_price": 20000.0,
+                            "unit_cost": 10000.0,
+                            "subtotal": 140000.0
+                        }
+                    ],
+                    "total": 56000.0,
+                    "points_earned": 560000
+                }
+            ]
         }
-      ]
-    }
-  ],
-  "_config": {
-    "House Of Stembii": {
-      "points_enabled": true,
-      "points_per_dollar": 10.0,
-      "tiers": [
-        {
-          "discount_pct": 10.0,
-          "label": "Silver",
-          "points": 100
-        },
-        {
-          "discount_pct": 20.0,
-          "label": "Supreme",
-          "points": 300
-        },
-        {
-          "discount_pct": 30.0,
-          "label": "Elite",
-          "points": 500
-        }
-      ]
-    }
-  }
+    ]
 }

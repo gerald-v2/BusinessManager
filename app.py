@@ -429,6 +429,8 @@ def biz_dashboard(biz):
     if biz not in businesses:
         flash('Business not found.', 'danger')
         return redirect(url_for('dashboard'))
+    if session.get('user_type') == 'biz_staff':
+        return _staff_dashboard(biz, businesses)
     fin = bf.business_finance.get(biz, {})
     revenue = fin.get('Revenue', 0) or 0
     costs = fin.get('Costs', 0) or 0
@@ -505,6 +507,9 @@ def daily_summary(biz):
     r = _require_biz_access(biz)
     if r:
         return r
+    if not _is_manager(biz):
+        flash('Manager access required.', 'danger')
+        return redirect(url_for('biz_dashboard', biz=biz))
     businesses = _load_biz()
     _load_finance()
     if biz not in businesses:
@@ -1701,6 +1706,9 @@ def attendance(biz):
 @app.route('/biz/<biz>/employees/clock-in', methods=['POST'])
 def clock_in(biz):
     r = _require_biz_access(biz)
+    if not _can_access(biz, 'employees'):
+        flash('Access denied', 'danger')
+        return redirect(url_for('biz_dashboard', biz=biz))
     if r:
         return r
     emp_name = request.form.get('emp_name', '').strip()
@@ -1723,6 +1731,9 @@ def clock_in(biz):
 @app.route('/biz/<biz>/employees/clock-out', methods=['POST'])
 def clock_out(biz):
     r = _require_biz_access(biz)
+    if not _can_access(biz, 'employees'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('biz_dashboard', biz=biz))
     if r:
         return r
     emp_name = request.form.get('emp_name', '').strip()
@@ -1744,6 +1755,189 @@ def clock_out(biz):
             return redirect(url_for('attendance', biz=biz))
     flash(f'{emp_name} is not clocked in today.', 'warning')
     return redirect(url_for('attendance', biz=biz))
+
+
+# ── STAFF DASHBOARD / QUICK CLOCK ────────────────────────────────────────────
+
+_att_lock = threading.Lock()
+
+MODULE_ICONS = {'pos': 'bi-cart3', 'products': 'bi-box-seam', 'finance': 'bi-graph-up-arrow',
+                'crm': 'bi-person-lines-fill', 'employees': 'bi-people', 'marketing': 'bi-megaphone'}
+MODULE_ENDPOINTS = {'pos': 'pos', 'products': 'products', 'finance': 'finance', 'crm': 'crm',
+                    'employees': 'employees_list', 'marketing': 'marketing'}
+
+
+def _open_clockins(biz):
+    """{name: 'HH:MM'} for everyone currently clocked in today."""
+    day = bf.load_attendance().get(biz, {}).get(bs.today().isoformat(), [])
+    return {r['employee']: r.get('clock_in', '') for r in day if not r.get('clock_out')}
+
+
+def _staff_dashboard(biz, businesses):
+    """What a shop employee sees: their own shift, their own sales, and shortcuts
+    to the sections they have been given. No revenue, costs or profit."""
+    emp_name = session.get('emp_name') or session.get('username') or ''
+    today = bs.today()
+    today_s = today.isoformat()
+    sym = _sym(biz)
+
+    attendance = bf.load_attendance().get(biz, {})
+    mine_today = [r for r in attendance.get(today_s, []) if r.get('employee') == emp_name]
+    open_rec = next((r for r in reversed(mine_today) if not r.get('clock_out')), None)
+    hours_today = sum(r.get('hours') or 0 for r in mine_today)
+
+    week_start = today - datetime.timedelta(days=today.weekday())
+    week_hours = 0.0
+    for d, recs in attendance.items():
+        try:
+            day = datetime.date.fromisoformat(d)
+        except ValueError:
+            continue
+        if week_start <= day <= today:
+            week_hours += sum(r.get('hours') or 0 for r in recs if r.get('employee') == emp_name)
+
+    my_sales = [s for s in pos_mod.load_sales().get(biz, [])
+                if s.get('date') == today_s and s.get('cashier') == emp_name and not s.get('refunded')]
+
+    low_stock = []
+    if _can_access(biz, 'pos') or _can_access(biz, 'products'):
+        for p_name, details in businesses[biz].get('products', {}).items():
+            for v in details.get('variants', []):
+                if v.get('units', 0) < 5:
+                    low_stock.append({'product': p_name, 'variant': v['name'], 'units': v.get('units', 0)})
+
+    perms = session.get('permissions', [])
+    my_modules = [{'label': bl.MODULES[k], 'icon': MODULE_ICONS.get(k, 'bi-app'),
+                   'url': url_for(MODULE_ENDPOINTS[k], biz=biz)}
+                  for k in bl.MODULE_ORDER if k in perms and k in MODULE_ENDPOINTS]
+
+    return render_template('staff_dashboard.html', biz=biz, sym=sym, emp_name=emp_name,
+                           today=today_s, today_label=today.strftime('%A, %d %B %Y'),
+                           open_time=(open_rec or {}).get('clock_in', ''),
+                           hours_today=hours_today, week_hours=week_hours,
+                           my_sales_count=len(my_sales),
+                           my_sales_total=sum(s.get('total', 0) for s in my_sales),
+                           low_stock=low_stock, my_modules=my_modules)
+
+
+@app.route('/biz/<biz>/attendance/quick')
+def quick_clock(biz):
+    """One-tap clock in / out for everyone on the employee list, including staff
+    who have no login. Works offline (see static/attendance-sync.js)."""
+    r = _require_biz_access(biz)
+    if r:
+        return r
+    if not _can_access(biz, 'employees'):
+        flash('You do not have access to Quick Clock.', 'danger')
+        return redirect(url_for('biz_dashboard', biz=biz))
+    today = bs.today()
+    day_recs = bf.load_attendance().get(biz, {}).get(today.isoformat(), [])
+    people = []
+    for e in bf.load_employees().get(biz, []):
+        hrs = sum(x.get('hours') or 0 for x in day_recs if x.get('employee') == e['name'])
+        people.append({'name': e['name'], 'role': e.get('role', ''),
+                       'has_login': bool(e.get('username')), 'hours': round(hrs, 2)})
+    # the manager can clock themselves in too
+    me = session.get('username') or ''
+    if session.get('user_type') in ('biz_admin', 'system_admin', 'system_business') \
+            and me and not any(p['name'] == me for p in people):
+        people.insert(0, {'name': me, 'role': 'Manager', 'has_login': True, 'hours': 0})
+    return render_template('quick_clock.html', biz=biz, people=people,
+                           today=today.isoformat(), today_label=today.strftime('%A, %d %B %Y'),
+                           open_now=_open_clockins(biz))
+
+
+@app.route('/api/attendance/state/<biz>')
+def api_attendance_state(biz):
+    if not session.get('user_type'):
+        return jsonify({'error': 'not logged in'}), 401
+    if _require_biz_access(biz) or not _can_access(biz, 'employees'):
+        return jsonify({'error': 'access denied'}), 403
+    return jsonify({'open': _open_clockins(biz), 'date': bs.today().isoformat()})
+
+
+def _apply_clock_event(biz_att, ev):
+    """Record one clock event. Safe to repeat: every event has a unique id.
+    Returns 'ok' | 'duplicate' | 'already_in' | 'not_clocked_in' | 'rejected'."""
+    eid = str(ev.get('id') or '')
+    name = str(ev.get('employee') or '').strip()
+    action = ev.get('action')
+    d, t = str(ev.get('date') or ''), str(ev.get('time') or '')
+    try:
+        d_date = datetime.date.fromisoformat(d)
+        datetime.datetime.strptime(t, '%H:%M')
+    except ValueError:
+        return 'rejected'
+    if not eid or not name or action not in ('in', 'out'):
+        return 'rejected'
+
+    for recs in biz_att.values():                      # already recorded?
+        for r in recs:
+            if eid in (r.get('in_id'), r.get('out_id')):
+                return 'duplicate'
+
+    if action == 'in':
+        day = biz_att.setdefault(d, [])
+        if any(r.get('employee') == name and not r.get('clock_out') for r in day):
+            return 'already_in'
+        day.append({'employee': name, 'clock_in': t, 'clock_out': None, 'hours': None,
+                    'in_id': eid, 'source': str(ev.get('source') or 'quick')[:10]})
+        return 'ok'
+
+    # clock out: close the latest open record (also handles shifts past midnight)
+    for day_key in sorted(biz_att.keys(), reverse=True):
+        if day_key > d:
+            continue
+        try:
+            if (d_date - datetime.date.fromisoformat(day_key)).days > 2:
+                break
+        except ValueError:
+            continue
+        for r in reversed(biz_att[day_key]):
+            if r.get('employee') == name and not r.get('clock_out'):
+                r['clock_out'] = t
+                r['out_id'] = eid
+                try:
+                    t_in = datetime.datetime.strptime(f"{day_key} {r['clock_in']}", '%Y-%m-%d %H:%M')
+                    t_out = datetime.datetime.strptime(f"{d} {t}", '%Y-%m-%d %H:%M')
+                    r['hours'] = max(0.0, round((t_out - t_in).total_seconds() / 3600, 2))
+                except ValueError:
+                    pass
+                return 'ok'
+    return 'not_clocked_in'
+
+
+@app.route('/api/sync/attendance', methods=['POST'])
+def api_sync_attendance():
+    """Receives clock events made on a device (live or queued while offline)."""
+    if not session.get('user_type'):
+        return jsonify({'status': 'error', 'error': 'not logged in'}), 401
+    data = request.get_json(silent=True) or {}
+    biz, events = data.get('biz'), data.get('events')
+    if not biz or not isinstance(events, list):
+        return jsonify({'status': 'error', 'error': 'bad request'}), 400
+    if _require_biz_access(biz):
+        return jsonify({'status': 'error', 'error': 'access denied'}), 403
+
+    can_all = _can_access(biz, 'employees')
+    own = session.get('emp_name') or session.get('username') or ''
+    results = {}
+    with _att_lock:
+        known = {e['name'] for e in bf.load_employees().get(biz, [])} | {own}
+        att = bf.load_attendance()
+        biz_att = att.setdefault(biz, {})
+        for ev in events[:500]:
+            if not isinstance(ev, dict) or not ev.get('id'):
+                continue
+            eid, name = str(ev['id']), str(ev.get('employee') or '').strip()
+            if not can_all and name != own:
+                results[eid] = 'forbidden'        # staff may only clock themselves
+            elif name not in known:
+                results[eid] = 'rejected'
+            else:
+                results[eid] = _apply_clock_event(biz_att, ev)
+        bf.save_attendance(att)
+    return jsonify({'status': 'ok', 'results': results})
 
 @app.route('/biz/<biz>/employees/payroll')
 def payroll(biz):
@@ -2279,6 +2473,9 @@ def admin_accounts():
 def ai_business(biz):
 
     r = _require_biz_access(biz)
+    if not _is_manager(biz):
+        flash('Manager access required.', 'danger')
+        return redirect(url_for('biz_dashboard', biz=biz))
 
     if r:
         return r
@@ -2297,6 +2494,9 @@ def ask_ai(biz):
         return jsonify({
             "error": "Access denied"
         }), 403
+
+    if not _is_manager(biz):
+        return jsonify({"error": "Manager access required"}), 403
 
     data = request.get_json(silent=True) or {}
 

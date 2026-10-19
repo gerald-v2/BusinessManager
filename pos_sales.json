@@ -1,180 +1,639 @@
 {
-  "Apple": [
-    {
-      "date": "2026-05-10",
-      "discount_amt": 0.0,
-      "discount_pct": 0.0,
-      "items": [
+    "Apple": [
         {
-          "plu": "0001",
-          "product": "Iphone",
-          "qty": 12,
-          "subtotal": 14400.0,
-          "unit_price": 1200.0,
-          "variant": "Red"
-        }
-      ],
-      "payment": "Cash",
-      "subtotal": 14400.0,
-      "tax_amt": 213.12,
-      "tax_pct": 1.48,
-      "time": "12:07",
-      "total": 14613.12
-    },
-    {
-      "change": 0.0,
-      "date": "2026-05-14",
-      "discount_amt": 0.0,
-      "discount_pct": 0.0,
-      "items": [
-        {
-          "plu": "0001",
-          "product": "Iphone",
-          "qty": 4,
-          "subtotal": 4800.0,
-          "unit_price": 1200.0,
-          "variant": "Red"
+            "date": "2026-05-10",
+            "discount_amt": 0.0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "0001",
+                    "product": "Iphone",
+                    "qty": 12,
+                    "subtotal": 14400.0,
+                    "unit_price": 1200.0,
+                    "variant": "Red"
+                }
+            ],
+            "payment": "Cash",
+            "subtotal": 14400.0,
+            "tax_amt": 213.12,
+            "tax_pct": 1.48,
+            "time": "12:07",
+            "total": 14613.12
         },
         {
-          "plu": "1100",
-          "product": "Ipad",
-          "qty": 3,
-          "subtotal": 60000.0,
-          "unit_price": 20000.0,
-          "variant": "Red"
-        }
-      ],
-      "payment": "Mobile",
-      "payment_amount": 64800.0,
-      "points_earned": 0,
-      "points_redeemed": 0,
-      "refunded": false,
-      "subtotal": 64800.0,
-      "tax_amt": 0.0,
-      "tax_pct": 0.0,
-      "time": "12:34",
-      "total": 64800.0
-    }
-  ],
-  "House Of Stembii": [
-    {
-      "date": "2026-05-10",
-      "discount_amt": 0.0,
-      "discount_pct": 0.0,
-      "items": [
-        {
-          "plu": "1001",
-          "product": "100Pcs Balloons",
-          "qty": 10,
-          "subtotal": 1000.0,
-          "unit_price": 100.0,
-          "variant": "White"
+            "change": 0.0,
+            "date": "2026-05-14",
+            "discount_amt": 0.0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "0001",
+                    "product": "Iphone",
+                    "qty": 4,
+                    "subtotal": 4800.0,
+                    "unit_price": 1200.0,
+                    "variant": "Red"
+                },
+                {
+                    "plu": "1100",
+                    "product": "Ipad",
+                    "qty": 3,
+                    "subtotal": 60000.0,
+                    "unit_price": 20000.0,
+                    "variant": "Red"
+                }
+            ],
+            "payment": "Mobile",
+            "payment_amount": 64800.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": false,
+            "subtotal": 64800.0,
+            "tax_amt": 0.0,
+            "tax_pct": 0.0,
+            "time": "12:34",
+            "total": 64800.0
         },
         {
-          "plu": "0002",
-          "product": "Lights",
-          "qty": 3,
-          "subtotal": 75.0,
-          "unit_price": 25.0,
-          "variant": "Green"
-        }
-      ],
-      "payment": "Card",
-      "subtotal": 1075.0,
-      "tax_amt": 163.4,
-      "tax_pct": 15.2,
-      "time": "12:31",
-      "total": 1238.4
-    },
-    {
-      "customer": "Herald",
-      "date": "2026-05-10",
-      "discount_amt": 0.0,
-      "discount_pct": 0.0,
-      "items": [
-        {
-          "plu": "1000",
-          "product": "100Pcs Balloons",
-          "qty": 20,
-          "subtotal": 2000.0,
-          "unit_price": 100.0,
-          "variant": "Red"
+            "sale_id": "muz6k8qv-b5cbwy8rvbj",
+            "receipt_no": 3,
+            "date": "2026-10-08",
+            "time": "08:53",
+            "items": [
+                {
+                    "product": "Ipad",
+                    "variant": "Red",
+                    "plu": "1100",
+                    "qty": 5,
+                    "unit_price": 20000.0,
+                    "unit_cost": 10000.0,
+                    "subtotal": 100000.0
+                },
+                {
+                    "product": "Iphone",
+                    "variant": "White",
+                    "plu": "0002",
+                    "qty": 20,
+                    "unit_price": 1200.0,
+                    "unit_cost": 500.0,
+                    "subtotal": 24000.0
+                }
+            ],
+            "subtotal": 124000.0,
+            "discount_type": "percent",
+            "discount_pct": 10.0,
+            "discount_amt": 12400.0,
+            "discount_label": "Student DIscount",
+            "tax_pct": 0,
+            "tax_amt": 0.0,
+            "vat_inclusive": false,
+            "net_amount": 111600.0,
+            "total": 111600.0,
+            "payment": "Mobile",
+            "payment_amount": 111600.0,
+            "change": 0.0,
+            "pay_currency": "RND",
+            "alt_rate": 1.0,
+            "tendered": 111600.0,
+            "change_pay": 0.0,
+            "customer": null,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "cashier": "admin",
+            "refunded": false
         },
         {
-          "plu": "0001",
-          "product": "Lights",
-          "qty": 4,
-          "subtotal": 100.0,
-          "unit_price": 25.0,
-          "variant": "Bue"
-        }
-      ],
-      "payment": "Cash",
-      "subtotal": 2100.0,
-      "tax_amt": 321.3,
-      "tax_pct": 15.3,
-      "time": "12:43",
-      "total": 2421.3
-    },
-    {
-      "customer": "John",
-      "date": "2026-05-10",
-      "discount_amt": 0.0,
-      "discount_pct": 0.0,
-      "items": [
-        {
-          "plu": "1003",
-          "product": "100Pcs Balloons",
-          "qty": 10,
-          "subtotal": 1000.0,
-          "unit_price": 100.0,
-          "variant": "Royal Blue"
+            "sale_id": "muz6z18q-oq87qtxd5eo",
+            "receipt_no": 4,
+            "date": "2026-10-08",
+            "time": "09:05",
+            "items": [
+                {
+                    "product": "Ipad",
+                    "variant": "Green",
+                    "plu": "1200",
+                    "qty": 10,
+                    "unit_price": 20000.0,
+                    "unit_cost": 10000.0,
+                    "subtotal": 200000.0
+                },
+                {
+                    "product": "Iphone",
+                    "variant": "Red",
+                    "plu": "0001",
+                    "qty": 20,
+                    "unit_price": 1200.0,
+                    "unit_cost": 500.0,
+                    "subtotal": 24000.0
+                }
+            ],
+            "subtotal": 224000.0,
+            "discount_type": "none",
+            "discount_pct": 0.0,
+            "discount_amt": 0.0,
+            "discount_label": "",
+            "tax_pct": 0,
+            "tax_amt": 0.0,
+            "vat_inclusive": false,
+            "net_amount": 224000.0,
+            "total": 224000.0,
+            "payment": "Mobile",
+            "payment_amount": 224000.0,
+            "change": 0.0,
+            "pay_currency": "RND",
+            "alt_rate": 1.0,
+            "tendered": 224000.0,
+            "change_pay": 0.0,
+            "customer": "Gerald Nyahada",
+            "points_earned": 2240000,
+            "points_redeemed": 0,
+            "cashier": "admin",
+            "refunded": false
         },
         {
-          "plu": "0002",
-          "product": "Lights",
-          "qty": 7,
-          "subtotal": 175.0,
-          "unit_price": 25.0,
-          "variant": "Green"
-        }
-      ],
-      "payment": "Cash",
-      "subtotal": 1175.0,
-      "tax_amt": 235.0,
-      "tax_pct": 20.0,
-      "time": "13:16",
-      "total": 1410.0
-    },
-    {
-      "customer": "Herald",
-      "date": "2026-05-10",
-      "discount_amt": 630.0,
-      "discount_pct": 30.0,
-      "items": [
-        {
-          "plu": "1000",
-          "product": "100Pcs Balloons",
-          "qty": 20,
-          "subtotal": 2000.0,
-          "unit_price": 100.0,
-          "variant": "Red"
+            "sale_id": "muz6zre7-l8dqyxl0lyr",
+            "receipt_no": 5,
+            "date": "2026-10-08",
+            "time": "09:05",
+            "items": [
+                {
+                    "product": "Iphone",
+                    "variant": "Green",
+                    "plu": "0003",
+                    "qty": 1,
+                    "unit_price": 1200.0,
+                    "unit_cost": 500.0,
+                    "subtotal": 1200.0
+                }
+            ],
+            "subtotal": 1200.0,
+            "discount_type": "percent",
+            "discount_pct": 30.0,
+            "discount_amt": 360.0,
+            "discount_label": "Loyalty Supreme Tier",
+            "tax_pct": 0,
+            "tax_amt": 0.0,
+            "vat_inclusive": false,
+            "net_amount": 840.0,
+            "total": 840.0,
+            "payment": "Cash",
+            "payment_amount": 840.0,
+            "change": 0.0,
+            "pay_currency": "RND",
+            "alt_rate": 1.0,
+            "tendered": 840.0,
+            "change_pay": 0.0,
+            "customer": "Gerald Nyahada",
+            "points_earned": 8400,
+            "points_redeemed": 5000,
+            "cashier": "admin",
+            "refunded": false
         },
         {
-          "plu": "0001",
-          "product": "Lights",
-          "qty": 4,
-          "subtotal": 100.0,
-          "unit_price": 25.0,
-          "variant": "Bue"
+            "sale_id": "muz726u1-tjhpo6lvj58",
+            "receipt_no": 6,
+            "date": "2026-10-08",
+            "time": "09:07",
+            "items": [
+                {
+                    "product": "Ipad",
+                    "variant": "White",
+                    "plu": "1000",
+                    "qty": 7,
+                    "unit_price": 20000.0,
+                    "unit_cost": 10000.0,
+                    "subtotal": 140000.0
+                }
+            ],
+            "subtotal": 140000.0,
+            "discount_type": "percent",
+            "discount_pct": 60.0,
+            "discount_amt": 84000.0,
+            "discount_label": "Loyalty Elite Tier",
+            "tax_pct": 0,
+            "tax_amt": 0.0,
+            "vat_inclusive": false,
+            "net_amount": 56000.0,
+            "total": 56000.0,
+            "payment": "Cash",
+            "payment_amount": 56000.0,
+            "change": 0.0,
+            "pay_currency": "RND",
+            "alt_rate": 1.0,
+            "tendered": 56000.0,
+            "change_pay": 0.0,
+            "customer": "Gerald Nyahada",
+            "points_earned": 560000,
+            "points_redeemed": 20000,
+            "cashier": "admin",
+            "refunded": false
         }
-      ],
-      "payment": "Cash",
-      "subtotal": 2100.0,
-      "tax_amt": 220.5,
-      "tax_pct": 15.0,
-      "time": "13:18",
-      "total": 1690.5
-    }
-  ]
+    ],
+    "House Of Stembii": [
+        {
+            "date": "2026-05-10",
+            "discount_amt": 0.0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "1001",
+                    "product": "100Pcs Balloons",
+                    "qty": 10,
+                    "subtotal": 1000.0,
+                    "unit_price": 100.0,
+                    "variant": "White"
+                },
+                {
+                    "plu": "0002",
+                    "product": "Lights",
+                    "qty": 3,
+                    "subtotal": 75.0,
+                    "unit_price": 25.0,
+                    "variant": "Green"
+                }
+            ],
+            "payment": "Card",
+            "subtotal": 1075.0,
+            "tax_amt": 163.4,
+            "tax_pct": 15.2,
+            "time": "12:31",
+            "total": 1238.4
+        },
+        {
+            "customer": "Herald",
+            "date": "2026-05-10",
+            "discount_amt": 0.0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "1000",
+                    "product": "100Pcs Balloons",
+                    "qty": 20,
+                    "subtotal": 2000.0,
+                    "unit_price": 100.0,
+                    "variant": "Red"
+                },
+                {
+                    "plu": "0001",
+                    "product": "Lights",
+                    "qty": 4,
+                    "subtotal": 100.0,
+                    "unit_price": 25.0,
+                    "variant": "Bue"
+                }
+            ],
+            "payment": "Cash",
+            "subtotal": 2100.0,
+            "tax_amt": 321.3,
+            "tax_pct": 15.3,
+            "time": "12:43",
+            "total": 2421.3
+        },
+        {
+            "customer": "John",
+            "date": "2026-05-10",
+            "discount_amt": 0.0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "1003",
+                    "product": "100Pcs Balloons",
+                    "qty": 10,
+                    "subtotal": 1000.0,
+                    "unit_price": 100.0,
+                    "variant": "Royal Blue"
+                },
+                {
+                    "plu": "0002",
+                    "product": "Lights",
+                    "qty": 7,
+                    "subtotal": 175.0,
+                    "unit_price": 25.0,
+                    "variant": "Green"
+                }
+            ],
+            "payment": "Cash",
+            "subtotal": 1175.0,
+            "tax_amt": 235.0,
+            "tax_pct": 20.0,
+            "time": "13:16",
+            "total": 1410.0
+        },
+        {
+            "customer": "Herald",
+            "date": "2026-05-10",
+            "discount_amt": 630.0,
+            "discount_pct": 30.0,
+            "items": [
+                {
+                    "plu": "1000",
+                    "product": "100Pcs Balloons",
+                    "qty": 20,
+                    "subtotal": 2000.0,
+                    "unit_price": 100.0,
+                    "variant": "Red"
+                },
+                {
+                    "plu": "0001",
+                    "product": "Lights",
+                    "qty": 4,
+                    "subtotal": 100.0,
+                    "unit_price": 25.0,
+                    "variant": "Bue"
+                }
+            ],
+            "payment": "Cash",
+            "subtotal": 2100.0,
+            "tax_amt": 220.5,
+            "tax_pct": 15.0,
+            "time": "13:18",
+            "total": 1690.5
+        },
+        {
+            "change": 0,
+            "date": "2026-10-06",
+            "discount_amt": 0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "1001",
+                    "product": "100Pcs Balloons",
+                    "qty": 3,
+                    "subtotal": 300.0,
+                    "unit_price": 100.0,
+                    "variant": "White"
+                }
+            ],
+            "payment": "Card",
+            "payment_amount": 300.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": false,
+            "sale_id": "881cf42b-b081-45a9-afea-216f27ddee8c",
+            "subtotal": 300.0,
+            "synced_offline": true,
+            "tax_amt": 0,
+            "tax_pct": 0.0,
+            "time": "07:55",
+            "total": 300.0
+        },
+        {
+            "change": 0,
+            "date": "2026-10-06",
+            "discount_amt": 0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "1004",
+                    "product": "100Pcs Balloons",
+                    "qty": 3,
+                    "subtotal": 300.0,
+                    "unit_price": 100.0,
+                    "variant": "Baby Yellow"
+                }
+            ],
+            "payment": "Cash",
+            "payment_amount": 300.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": false,
+            "sale_id": "d0c4c2ff-1723-4321-a512-6730ee660cda",
+            "subtotal": 300.0,
+            "synced_offline": true,
+            "tax_amt": 0,
+            "tax_pct": 0.0,
+            "time": "07:55",
+            "total": 300.0
+        },
+        {
+            "change": 0,
+            "date": "2026-10-06",
+            "discount_amt": 0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "0001",
+                    "product": "Lights",
+                    "qty": 2,
+                    "subtotal": 50.0,
+                    "unit_price": 25.0,
+                    "variant": "Bue"
+                }
+            ],
+            "payment": "Cash",
+            "payment_amount": 50.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": false,
+            "sale_id": "6b6329b1-8227-4cb7-8f61-81cc91df87d9",
+            "subtotal": 50.0,
+            "synced_offline": true,
+            "tax_amt": 0,
+            "tax_pct": 0.0,
+            "time": "07:56",
+            "total": 50.0
+        },
+        {
+            "change": 200.0,
+            "date": "2026-10-06",
+            "discount_amt": 0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "1002",
+                    "product": "100Pcs Balloons",
+                    "qty": 6,
+                    "subtotal": 600.0,
+                    "unit_price": 100.0,
+                    "variant": "Emerald Green"
+                }
+            ],
+            "payment": "Cash",
+            "payment_amount": 800.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": false,
+            "sale_id": "26b7de66-4c8c-477d-adb6-94e8ff38403a",
+            "subtotal": 600.0,
+            "synced_offline": true,
+            "tax_amt": 0,
+            "tax_pct": 0.0,
+            "time": "17:16",
+            "total": 600.0
+        },
+        {
+            "change": 0,
+            "date": "2026-10-06",
+            "discount_amt": 0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "1003",
+                    "product": "100Pcs Balloons",
+                    "qty": 10,
+                    "subtotal": 1000.0,
+                    "unit_price": 100.0,
+                    "variant": "Royal Blue"
+                }
+            ],
+            "payment": "Cash",
+            "payment_amount": 1000.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": false,
+            "sale_id": "a71d70f0-633d-4f10-b7c1-108118c36abb",
+            "subtotal": 1000.0,
+            "synced_offline": true,
+            "tax_amt": 0,
+            "tax_pct": 0.0,
+            "time": "17:17",
+            "total": 1000.0
+        },
+        {
+            "alt_rate": 1.0,
+            "cashier": "admin",
+            "change": 0.0,
+            "change_pay": 0.0,
+            "date": "2026-10-07",
+            "discount_amt": 0.0,
+            "discount_label": "",
+            "discount_pct": 0.0,
+            "discount_type": "none",
+            "items": [
+                {
+                    "plu": "1000",
+                    "product": "100Pcs Balloons",
+                    "qty": 3,
+                    "subtotal": 300.0,
+                    "unit_cost": 30.0,
+                    "unit_price": 100.0,
+                    "variant": "Red"
+                }
+            ],
+            "net_amount": 300.0,
+            "pay_currency": "RND",
+            "payment": "Cash",
+            "payment_amount": 300.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "receipt_no": 10,
+            "refunded": false,
+            "sale_id": "e3a1e6b6-8bd7-4ad4-a20b-1a16d5e04796",
+            "subtotal": 300.0,
+            "tax_amt": 0.0,
+            "tax_pct": 0,
+            "tendered": 300.0,
+            "time": "07:55",
+            "total": 300.0,
+            "vat_inclusive": false
+        }
+    ],
+    "Testing": [
+        {
+            "change": 5.61,
+            "date": "2026-09-14",
+            "discount_amt": 1.6,
+            "discount_pct": 4.0,
+            "items": [
+                {
+                    "plu": "1000",
+                    "product": "T-Shirt",
+                    "qty": 4,
+                    "subtotal": 40.0,
+                    "unit_price": 10.0,
+                    "variant": "Red Shirt"
+                }
+            ],
+            "payment": "Cash",
+            "payment_amount": 50.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": false,
+            "subtotal": 40.0,
+            "tax_amt": 5.99,
+            "tax_pct": 15.6,
+            "time": "10:27",
+            "total": 44.39
+        },
+        {
+            "change": 0.0,
+            "date": "2026-09-23",
+            "discount_amt": 0,
+            "discount_pct": 0,
+            "items": [
+                {
+                    "product": "T-Shirt",
+                    "qty": 3,
+                    "subtotal": 30.0,
+                    "variant": "Red Shirt"
+                }
+            ],
+            "payment": "Cash",
+            "payment_amount": 30.0,
+            "points_earned": 0,
+            "points_redeemed": 0,
+            "refunded": true,
+            "subtotal": 30.0,
+            "synced_offline": true,
+            "tax_amt": 0,
+            "tax_pct": 0,
+            "time": "09:16",
+            "total": 30.0
+        },
+        {
+            "change": 0.0,
+            "customer": "Kane",
+            "date": "2026-09-23",
+            "discount_amt": 0.0,
+            "discount_pct": 0.0,
+            "items": [
+                {
+                    "plu": "1000",
+                    "product": "T-Shirt",
+                    "qty": 8,
+                    "subtotal": 80.0,
+                    "unit_price": 10.0,
+                    "variant": "Red Shirt"
+                }
+            ],
+            "payment": "Card",
+            "payment_amount": 80.0,
+            "points_earned": 800,
+            "points_redeemed": 0,
+            "refunded": false,
+            "subtotal": 80.0,
+            "tax_amt": 0.0,
+            "tax_pct": 0.0,
+            "time": "09:42",
+            "total": 80.0
+        },
+        {
+            "change": 0.0,
+            "customer": "Kane",
+            "date": "2026-09-23",
+            "discount_amt": 1.0,
+            "discount_pct": 10,
+            "items": [
+                {
+                    "plu": "1000",
+                    "product": "T-Shirt",
+                    "qty": 1,
+                    "subtotal": 10.0,
+                    "unit_price": 10.0,
+                    "variant": "Red Shirt"
+                }
+            ],
+            "payment": "Transfer",
+            "payment_amount": 9.0,
+            "points_earned": 90,
+            "points_redeemed": 250,
+            "refunded": true,
+            "subtotal": 10.0,
+            "tax_amt": 0.0,
+            "tax_pct": 0.0,
+            "time": "10:04",
+            "total": 9.0
+        }
+    ]
 }

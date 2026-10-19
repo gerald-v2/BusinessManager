@@ -203,6 +203,13 @@
         'ep':'employees_list'
     }) %}
 
+  {% set _ = nav.append({
+        'icon':'bi-alarm',
+        'label':'Quick Clock',
+        'url':url_for('quick_clock', biz=biz),
+        'ep':'quick_clock'
+    }) %}
+
   {% endif %}
 
 
@@ -230,13 +237,14 @@
        AI BUSINESS ASSISTANT
        ===================================================== -->
 
-  {% set _ = nav.append({
-      'icon':'bi-stars',
-      'label':'AI Assistant',
-      'url':url_for('ai_business', biz=biz),
-      'ep':'ai_business'
-  }) %}
-
+  {% if is_manager(biz) %}
+    {% set _ = nav.append({
+        'icon':'bi-stars',
+        'label':'AI Assistant',
+        'url':url_for('ai_business', biz=biz),
+        'ep':'ai_business'
+    }) %}
+  {% endif %}
 
   <!-- SETTINGS -->
 
@@ -1129,5 +1137,6 @@ document
 {% endblock %}
 
   <script src="{{ url_for('static', filename='offline-sync.js') }}"></script>
+  <script src="{{ url_for('static', filename='attendance-sync.js') }}"></script>
 </body>
 </html>

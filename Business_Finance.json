@@ -1,12 +1,17 @@
 {
-  "Apple": {
-    "Costs": 0,
-    "Profit": 64800.0,
-    "Revenue": 64800.0
-  },
-  "House Of Stembii": {
-    "Costs": 6390.0,
-    "Profit": 60.0,
-    "Revenue": 6450.0
-  }
+    "Apple": {
+        "Revenue": 457240.0,
+        "Costs": 500.0,
+        "Profit": 456740.0
+    },
+    "House Of Stembii": {
+        "Costs": 6390.0,
+        "Profit": 2610.0,
+        "Revenue": 9000.0
+    },
+    "Testing": {
+        "Costs": 150.0,
+        "Profit": -29.0,
+        "Revenue": 121.0
+    }
 }

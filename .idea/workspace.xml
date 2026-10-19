@@ -2,7 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e8545c4e-e232-4b4d-a7d6-2c1044330915" name="Changes" comment="changed account names to ones that are allowed">
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/product.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Apple_inventory.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Apple_inventory.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Business_Finance.json" beforeDir="false" afterPath="$PROJECT_DIR$/Business_Finance.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Businesses.json" beforeDir="false" afterPath="$PROJECT_DIR$/Businesses.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts.json" beforeDir="false" afterPath="$PROJECT_DIR$/accounts.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/attendance.json" beforeDir="false" afterPath="$PROJECT_DIR$/attendance.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/business_accounts.json" beforeDir="false" afterPath="$PROJECT_DIR$/business_accounts.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/business_login.py" beforeDir="false" afterPath="$PROJECT_DIR$/business_login.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crm_customers.json" beforeDir="false" afterPath="$PROJECT_DIR$/crm_customers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/employees.json" beforeDir="false" afterPath="$PROJECT_DIR$/employees.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/leave.json" beforeDir="false" afterPath="$PROJECT_DIR$/leave.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pos_sales.json" beforeDir="false" afterPath="$PROJECT_DIR$/pos_sales.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/salary_advances.json" beforeDir="false" afterPath="$PROJECT_DIR$/salary_advances.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sentiment.json" beforeDir="false" afterPath="$PROJECT_DIR$/sentiment.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/service-worker.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/service-worker.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,29 +57,31 @@
 }</component>
   <component name="ProjectId" id="3HaXb1L4KNyV0UcMg1gXYGlc79L" />
   <component name="ProjectLevelVcsManager">
+    <OptionsSetting value="false" id="Update" />
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.ai_business.executor&quot;: &quot;Run&quot;,
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.business_manager.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.grazie&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "DefaultHtmlFileTemplate": "HTML File",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.ai_business.executor": "Run",
+    "Python.app.executor": "Run",
+    "Python.business_manager.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Users/Lenovo Gaming/PycharmProjects/BusinessManager",
+    "settings.editor.selected.configurable": "vcs.Git"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Lenovo Gaming\PycharmProjects\BusinessManager\static\js" />

@@ -1,6 +1,7 @@
 import security as sec
 import json
 import datetime
+import biz_settings as bs
 
 BACCOUNTSFILE = "business_accounts.json"
 
@@ -94,8 +95,8 @@ def _save_attendance(data):
 def record_login_attendance(biz, emp_name):
     """Clock in an employee automatically on login."""
     data = _load_attendance()
-    today = datetime.date.today().isoformat()
-    now = datetime.datetime.now().strftime("%H:%M")
+    today = bs.today().isoformat()
+    now = bs.now().strftime("%H:%M")
     if biz not in data:
         data[biz] = {}
     if today not in data[biz]:
@@ -118,8 +119,8 @@ def record_login_attendance(biz, emp_name):
 def clock_out_on_logout(biz, emp_name):
     """Clock out an employee automatically on logout."""
     data = _load_attendance()
-    today = datetime.date.today().isoformat()
-    now = datetime.datetime.now().strftime("%H:%M")
+    today = bs.today().isoformat()
+    now = bs.now().strftime("%H:%M")
     for r in data.get(biz, {}).get(today, []):
         if r["employee"] == emp_name and r.get("clock_out") is None:
             r["clock_out"] = now

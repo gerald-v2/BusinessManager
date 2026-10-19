@@ -1,11 +1,16 @@
 {
-  "Beta Test": {
-    "email": "",
-    "password": "Test123",
-    "username": "beta-testing"
-  },
-  "House Of Stembii": {
-    "password": "Coge2008",
-    "username": "stembi.db"
-  }
+    "House Of Stembii": {
+        "password": "scrypt:32768:8:1$9rJGf8La1DLe0eeK$cd248cb1c825aef95bb82e37b289ad15f1e8d08bb23abc43744123e7ac79d253573ae4e1faf80d2d840d3d04d8f698b97808920a7a16b3551c1516bf66961793",
+        "username": "stembi.db"
+    },
+    "Testing": {
+        "email": "geraldnyahada@gmail.com",
+        "password": "Coge2008",
+        "username": "newtest"
+    },
+    "Apple": {
+        "username": "gerald23",
+        "password": "scrypt:32768:8:1$LY2Q2jAxGKPXqNtG$4379be2a095b1c6c59065e85dbf4a7272eaebf8c1962f8a60e4db601b9535c18e2becd17b578853894b5f39f0b0d09faf2c958b555b14816499e38c183508a82",
+        "email": "gerald@gmail.com"
+    }
 }

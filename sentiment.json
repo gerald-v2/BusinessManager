@@ -1,1 +1,24 @@
-{}
+{
+  "Apple": [
+    {
+      "id": "b4293044",
+      "rating": 1,
+      "review": "You Take a lot of time",
+      "date": "2026-10-08",
+      "customer": "Gerald Nyahada",
+      "product": "Ipad",
+      "source": "In shop",
+      "resolved": false
+    },
+    {
+      "id": "9980114b",
+      "rating": 5,
+      "review": "Thank you best of the best",
+      "date": "2026-10-08",
+      "customer": "Gerald Nyahada",
+      "product": "Iphone",
+      "source": "In shop",
+      "resolved": true
+    }
+  ]
+}

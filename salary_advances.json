@@ -1,1 +1,21 @@
-{}
+{
+    "Testing": [
+        {
+            "amount": 20.0,
+            "date": "2026-09-23",
+            "employee": "Gerald Nyahada",
+            "reason": "School",
+            "repaid": false
+        }
+    ],
+    "Apple": [
+        {
+            "employee": "Kane",
+            "amount": 20.0,
+            "date": "2026-10-08",
+            "reason": "Not specified",
+            "repaid": false,
+            "repaid_date": null
+        }
+    ]
+}

@@ -6,13 +6,14 @@
 //    network is down.  Open the POS screen once while online on each device.
 //  * Everything else (sales, saving data) always goes to the network.
 
-const CACHE_NAME = "bizmanager-v3";
+const CACHE_NAME = "bizmanager-v1";
 
 const CORE_FILES = [
     "/static/style.css",
     "/static/offline-sync.js",
     "/static/receipt-printer.js",
-    "/static/manifest.json"
+    "/static/manifest.json",
+    "/static/attendance-sync.json"
 ];
 
 const CDN_ASSETS = [
@@ -157,6 +158,6 @@ self.addEventListener("fetch", event => {
     }
 
     // The POS screen itself is kept for offline use. Other pages are not stored.
-    const isPosPage = request.mode === "navigate" && /\/pos\/?$/.test(url.pathname);
-    event.respondWith(networkFirst(request, isPosPage));
+    const isPosPage = request.mode === "navigate" &&
+        /\/(pos|attendance\/quick)\/?$/.test(url.pathname);
 });
