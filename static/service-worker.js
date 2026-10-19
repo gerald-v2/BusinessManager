@@ -67,9 +67,14 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-function store(request, response) {
+async function store(request, response) {
   if (response && response.ok && response.type !== "opaque") {
-    caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone())).catch(() => null);
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(request, response.clone());
+    } catch (error) {
+      // Cache quota or storage failures must not break the online page.
+    }
   }
   return response;
 }
