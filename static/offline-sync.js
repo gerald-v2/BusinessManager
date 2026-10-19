@@ -308,51 +308,83 @@ async function syncSale(sale) {
 // SYNC EVERYTHING
 // ------------------------------------------------------------
 
-async function syncOfflineData() {
-
-    if (!navigator.onLine) {
-        return;
-    }
-
-    const sales =
-        await getQueuedSales();
-
-    if (sales.length === 0) {
-
-        updateSyncBadge();
-
-        return;
-    }
-
-    console.log(
-        `Attempting to sync ${sales.length} sale(s)`
-    );
-
-    window.offlineSyncRejected = {};
-
-    for (const sale of sales) {
-
-        const result =
-            await syncSale(sale);
-
-        if (result === "retry") {
+async function saveCustomer(customer) {
+    await dbReady;
+    const record = Object.assign({}, customer, {
+        id: customer.id || generateSaleId(), synced: false,
+        offline_created_at: new Date().toISOString()
+    });
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("customers", "readwrite");
+        tx.objectStore("customers").put(record);
+        tx.oncomplete = async () => {
+            if (navigator.onLine) await syncCustomers();
+            resolve(record);
+        };
+        tx.onerror = event => reject(event.target.error);
+    });
+}
+async function getCustomers() {
+    await dbReady;
+    return new Promise((resolve, reject) => {
+        const req = db.transaction("customers", "readonly").objectStore("customers").getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = event => reject(event.target.error);
+    });
+}
+async function syncCustomers() {
+    if (!navigator.onLine) return;
+    const customers = (await getCustomers()).filter(c => !c.synced);
+    for (const customer of customers) {
+        try {
+            const response = await fetch("/api/sync/customer", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(customer)
+            });
+            let body = {};
+            try { body = await response.json(); } catch (_) {}
+            if (response.ok || body.status === "already_processed" || body.status === "already_exists") {
+                const saved = Object.assign({}, customer, {
+                    synced: true, server_customer_id: body.customer && body.customer.id || customer.id
+                });
+                await new Promise((resolve, reject) => {
+                    const tx = db.transaction("customers", "readwrite");
+                    tx.objectStore("customers").put(saved);
+                    tx.oncomplete = resolve;
+                    tx.onerror = event => reject(event.target.error);
+                });
+            } else if (response.status === 401 || response.status >= 500) {
+                break;
+            } else {
+                console.error("Customer sync rejected:", customer.id, body.error || response.status);
+            }
+        } catch (error) {
+            console.log("Customer sync will retry when online.", error);
             break;
         }
     }
-
     await updateSyncBadge();
-
-    const rejected = Object.keys(window.offlineSyncRejected || {});
-    if (rejected.length > 0 && !window.__rejectedAlertShown) {
-        window.__rejectedAlertShown = true;
-        alert(
-            rejected.length + " offline sale(s) could not be recorded:\n\n" +
-            rejected.map(function(id) {
-                return "- " + window.offlineSyncRejected[id];
-            }).join("\n") +
-            "\n\nThey are still saved on this device. Ask a manager to check them."
-        );
+}
+async function syncOfflineData() {
+    if (!navigator.onLine) return;
+    await syncCustomers();
+    const sales = await getQueuedSales();
+    if (sales.length > 0) {
+        console.log(`Attempting to sync ${sales.length} sale(s)`);
+        window.offlineSyncRejected = {};
+        for (const sale of sales) {
+            const result = await syncSale(sale);
+            if (result === "retry") break;
+        }
+        const rejected = Object.keys(window.offlineSyncRejected || {});
+        if (rejected.length > 0 && !window.__rejectedAlertShown) {
+            window.__rejectedAlertShown = true;
+            alert(rejected.length + " offline sale(s) could not be recorded:\n\n" +
+                rejected.map(id => "- " + window.offlineSyncRejected[id]).join("\n") +
+                "\n\nThey are still saved on this device. Ask a manager to check them.");
+        }
     }
+    await updateSyncBadge();
 }
 
 
@@ -372,22 +404,18 @@ async function updateSyncBadge() {
     }
 
 
-    const sales =
-        await getQueuedSales();
-
-
-    if (sales.length === 0) {
-
+    const sales = await getQueuedSales();
+    const customers = (await getCustomers()).filter(c => !c.synced);
+    const pending = sales.length + customers.length;
+    if (pending === 0) {
         badge.style.display = "none";
-
         return;
     }
-
-
     badge.style.display = "inline-block";
-
-    badge.textContent =
-        `${sales.length} sale(s) waiting to sync`;
+    const parts = [];
+    if (sales.length) parts.push(sales.length + " sale(s)");
+    if (customers.length) parts.push(customers.length + " customer(s)");
+    badge.textContent = parts.join(" + ") + " waiting to sync";
 }
 
 
@@ -445,6 +473,12 @@ window.addEventListener(
         await syncOfflineData();
     }
 );
+
+window.addEventListener("online", function() {
+    syncOfflineData();
+    updateConnectionStatus();
+});
+window.addEventListener("offline", updateConnectionStatus);
 
 
 window.addEventListener(
@@ -518,6 +552,9 @@ window.addEventListener(
 window.offlineSync = {
 
     queueSale,
+    saveCustomer,
+    getCustomers,
+    syncCustomers,
 
     syncOfflineData,
 

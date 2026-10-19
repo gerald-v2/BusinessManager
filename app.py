@@ -1233,6 +1233,44 @@ def api_sync_sale():
     ok, payload, status = pos_mod.process_sale(biz, data, actor)
     return jsonify(payload), status
 
+@app.route('/api/sync/customer', methods=['POST'])
+def api_sync_customer():
+    """Idempotently save a customer created by a POS device while offline."""
+    if not session.get('user_type'):
+        return jsonify({'status': 'error', 'error': 'not logged in'}), 401
+    data = request.get_json(silent=True) or {}
+    biz = str(data.get('biz') or '').strip()
+    customer_id = str(data.get('id') or '').strip()
+    name = str(data.get('name') or '').strip()
+    if not biz or not customer_id or not name:
+        return jsonify({'status': 'error', 'error': 'business, customer id and name are required'}), 400
+    if _require_biz_access(biz) or not _can_access(biz, 'pos'):
+        return jsonify({'status': 'error', 'error': 'access denied'}), 403
+    raw = crm_mod._load_raw()
+    customers = raw.get(biz, [])
+    if not isinstance(customers, list):
+        customers = []
+        raw[biz] = customers
+    existing = next((c for c in customers if c.get('id') == customer_id), None)
+    if existing:
+        return jsonify({'status': 'already_processed', 'customer': existing}), 200
+    phone = str(data.get('phone') or '').strip()
+    duplicate = next((c for c in customers
+                      if c.get('name', '').casefold() == name.casefold()
+                      and phone and str(c.get('phone') or '').strip() == phone), None)
+    if duplicate:
+        return jsonify({'status': 'already_exists', 'customer': duplicate}), 200
+    customer = {
+        'id': customer_id, 'name': name, 'phone': phone,
+        'email': str(data.get('email') or '').strip(),
+        'notes': str(data.get('notes') or '').strip(),
+        'points': 0, 'joined': datetime.date.today().isoformat(), 'purchases': []
+    }
+    customers.append(customer)
+    raw[biz] = customers
+    crm_mod._save_raw(raw)
+    return jsonify({'status': 'created', 'customer': customer}), 201
+
 @app.route('/biz/<biz>/pos/sales')
 def pos_sales(biz):
     r = _require_biz_access(biz)

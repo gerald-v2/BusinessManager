@@ -85,11 +85,14 @@
 ========================================================= -->
 <div class="card mb-3">
   <div class="card-header fw-semibold">
-    <i class="bi bi-person-circle me-2"></i>
-    Customer
-    <span class="text-muted fw-normal small">
-      (optional)
-    </span>
+    <div class="d-flex align-items-center justify-content-between">
+      <span><i class="bi bi-person-circle me-2"></i>Customer
+        <span class="text-muted fw-normal small">(optional)</span>
+      </span>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addPosCustomerModal">
+        <i class="bi bi-person-plus me-1"></i>Add customer
+      </button>
+    </div>
   </div>
   <div class="card-body py-2">
     {% if active_customer %}
@@ -424,6 +427,25 @@
 </div>
   </div>
 </div>
+<!-- ADD CUSTOMER MODAL: local-first, then CRM sync -->
+<div class="modal fade" id="addPosCustomerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Add customer</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <form id="addPosCustomerForm"><div class="modal-body">
+      <div class="alert alert-info py-2 small">Customers are saved on this device first. If offline, BizManager will sync them when the internet returns.</div>
+      <div class="mb-3"><label for="posCustomerName" class="form-label">Customer name *</label><input id="posCustomerName" name="name" class="form-control" maxlength="100" required></div>
+      <div class="mb-3"><label for="posCustomerPhone" class="form-label">Phone</label><input id="posCustomerPhone" name="phone" class="form-control" maxlength="40" autocomplete="tel"></div>
+      <div class="mb-3"><label for="posCustomerEmail" class="form-label">Email</label><input id="posCustomerEmail" name="email" type="email" class="form-control" maxlength="160" autocomplete="email"></div>
+      <div class="mb-3"><label for="posCustomerNotes" class="form-label">Notes (optional)</label><textarea id="posCustomerNotes" name="notes" class="form-control" rows="2" maxlength="500"></textarea></div>
+      <div id="posCustomerSaveMessage" class="small" role="status"></div>
+    </div><div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="submit" id="posCustomerSaveButton" class="btn btn-primary">Save customer</button>
+    </div></form>
+  </div></div>
+</div>
+
 <!-- ============================================================
      CHECKOUT MODAL (customer, discount, loyalty, VAT, payment)
 ============================================================ -->
@@ -1820,6 +1842,59 @@ window.addEventListener(
 ============================================================ -->
 <script
   src="{{ url_for('static', filename='offline-sync.js') }}">
+
+/* POS customer creation: local-first, then background CRM sync. */
+(function () {
+  const form = document.getElementById("addPosCustomerForm");
+  if (!form) return;
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const button = document.getElementById("posCustomerSaveButton");
+    const message = document.getElementById("posCustomerSaveMessage");
+    const name = document.getElementById("posCustomerName").value.trim();
+    if (!name) {
+      message.className = "small text-danger";
+      message.textContent = "Enter the customer's name.";
+      return;
+    }
+    if (!window.offlineSync || !window.offlineSync.saveCustomer) {
+      message.className = "small text-danger";
+      message.textContent = "Offline customer storage is unavailable. Refresh the page and try again.";
+      return;
+    }
+    button.disabled = true;
+    message.className = "small text-muted";
+    message.textContent = "Saving customer on this device…";
+    try {
+      const customer = await window.offlineSync.saveCustomer({
+        id: window.offlineSync.generateSaleId(), biz: BIZ_NAME, name: name,
+        phone: document.getElementById("posCustomerPhone").value.trim(),
+        email: document.getElementById("posCustomerEmail").value.trim(),
+        notes: document.getElementById("posCustomerNotes").value.trim()
+      });
+      const customers = await window.offlineSync.getCustomers();
+      const saved = customers.find(c => c.id === customer.id) || customer;
+      message.className = "small text-success";
+      message.textContent = saved.synced
+        ? "Customer saved and synchronized with CRM."
+        : "Customer saved on this device. It will sync when the internet returns.";
+      form.reset();
+      await window.offlineSync.updateSyncBadge();
+      window.setTimeout(function () {
+        const modal = bootstrap.Modal.getInstance(document.getElementById("addPosCustomerModal"));
+        if (modal) modal.hide();
+        alert(saved.synced ? "Customer added to BizManager CRM." : "Customer saved offline and queued to sync.");
+      }, 350);
+    } catch (error) {
+      console.error("Could not save POS customer:", error);
+      message.className = "small text-danger";
+      message.textContent = "Could not save the customer. Please try again.";
+    } finally {
+      button.disabled = false;
+    }
+  });
+})();
+
 </script>
 <style>
 .product-card:hover {
