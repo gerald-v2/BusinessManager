@@ -21,8 +21,7 @@ const CDN_ASSETS = [
 const CDN_HOSTS = ["cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com"];
 
 function isOfflineModulePath(path) {
-  return /^\/biz\/[^/]+\/(?:pos|products|employees|attendance\/quick)\/?$/.test(path) ||
-         /^\/biz\/[^/]+\/(?:product\/[^/]+)\/?$/.test(path) ||
+  return /^\/biz\/[^/]+\/(?:pos|products(?:\/[^/]+)?|employees|crm|attendance\/quick)\/?$/.test(path) ||
          /^\/biz\/[^/]+\/?$/.test(path);
 }
 
@@ -35,8 +34,9 @@ function offlinePage() {
     links.forEach(url => unique.set(url.pathname, url.pathname));
     const entries = Array.from(unique.values()).sort().map(path => {
       const label = path.match(/\/pos\/?$/) ? "Point of Sale" :
-        path.match(/\/products\/?$/) ? "Products" :
+        path.match(/\/products(?:\/[^/]+)?\/?$/) ? "Products" :
         path.match(/\/employees\/?$/) ? "Employees" :
+        path.match(/\/crm\/?$/) ? "Customers / CRM" :
         path.match(/\/attendance\/quick\/?$/) ? "Quick Clock" : "Business Dashboard";
       return '<a style="display:block;padding:14px;margin:10px 0;border:1px solid #ddd;border-radius:10px;color:#0d6efd;text-decoration:none" href="' +
         path.replace(/&/g, "&amp;").replace(/"/g, "&quot;") + '">' + label + '</a>';
