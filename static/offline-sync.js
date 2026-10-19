@@ -7,7 +7,7 @@ if (window.offlineSync) { return; }
 // ============================================================
 
 const DB_NAME = "BusinessManagerOffline";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let db = null;
 
@@ -49,6 +49,12 @@ function openOfflineDB() {
                     keyPath: "id"
                 });
             }
+
+            if (!database.objectStoreNames.contains("snapshots")) {
+                database.createObjectStore("snapshots", {
+                    keyPath: "biz"
+                });
+            }
         };
 
         request.onsuccess = function(event) {
@@ -74,6 +80,53 @@ function openOfflineDB() {
 // ------------------------------------------------------------
 
 const dbReady = openOfflineDB();
+
+
+// ------------------------------------------------------------
+// OFFLINE SNAPSHOTS: products, customers and employees
+// ------------------------------------------------------------
+async function refreshSnapshot(biz) {
+    if (!biz || !navigator.onLine) return null;
+    try {
+        const response = await fetch("/api/offline/snapshot/" + encodeURIComponent(biz), {
+            method: "GET",
+            credentials: "same-origin",
+            headers: { "Accept": "application/json" },
+            cache: "no-store"
+        });
+        if (!response.ok) return null;
+        const snapshot = await response.json();
+        if (snapshot.status !== "ok") return null;
+        await dbReady;
+        await new Promise((resolve, reject) => {
+            const tx = db.transaction("snapshots", "readwrite");
+            tx.objectStore("snapshots").put(snapshot);
+            tx.oncomplete = resolve;
+            tx.onerror = event => reject(event.target.error);
+        });
+        return snapshot;
+    } catch (error) {
+        console.log("BizManager offline snapshot refresh deferred.", error);
+        return null;
+    }
+}
+
+async function getSnapshot(biz) {
+    await dbReady;
+    return new Promise((resolve, reject) => {
+        const request = db.transaction("snapshots", "readonly")
+            .objectStore("snapshots").get(biz);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = event => reject(event.target.error);
+    });
+}
+
+function businessFromPath() {
+    const match = window.location.pathname.match(/^\/biz\/([^/]+)/);
+    if (!match) return null;
+    try { return decodeURIComponent(match[1]); }
+    catch (_) { return match[1]; }
+}
 
 
 // ------------------------------------------------------------
@@ -470,6 +523,7 @@ window.addEventListener(
 
         updateConnectionStatus();
 
+        await refreshSnapshot(businessFromPath());
         await syncOfflineData();
     }
 );
@@ -539,6 +593,7 @@ window.addEventListener(
         await updateSyncBadge();
 
         if (navigator.onLine) {
+            await refreshSnapshot(businessFromPath());
             await syncOfflineData();
         }
     }
