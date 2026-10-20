@@ -1957,7 +1957,7 @@ window.addEventListener(
       const customers = await window.offlineSync.getCustomers();
       const saved = customers.find(c => c.id === customer.id) || customer;
       // Make a newly created offline customer available to this checkout immediately.
-      POS_CFG.customer = { name: saved.name, points: saved.points || 0, tier: null, phone: saved.phone || "" };
+      POS_CFG.customer = { name: saved.name, points: saved.points || 0, tier: saved.tier || null, phone: saved.phone || "" };
       renderOfflineLinkedCustomer(POS_CFG.customer);
       message.className = "small text-success";
       message.textContent = saved.synced
@@ -2057,7 +2057,7 @@ document.addEventListener("submit", async function(event) {
       alert("That customer is not saved on this device. Add the customer offline or reconnect to refresh the customer list.");
       return;
     }
-    POS_CFG.customer = { name: match.name, points: match.points || 0, tier: null, phone: match.phone || "" };
+    POS_CFG.customer = { name: match.name, points: match.points || 0, tier: match.tier || null, phone: match.phone || "" };
     renderOfflineLinkedCustomer(POS_CFG.customer);
   } catch (error) {
     console.error("Offline customer lookup failed:", error);
