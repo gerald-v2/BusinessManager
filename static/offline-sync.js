@@ -432,38 +432,72 @@ function renderOfflineModule(snapshot) {
     if (/\/products\/?$/.test(path)) {
         const grid = document.getElementById("productGrid");
         if (!grid) return;
-        grid.replaceChildren();
-        Object.entries(snapshot.products || {}).forEach(([name, details]) => {
+        const products = snapshot.products || {};
+        const existing = new Map(Array.from(grid.querySelectorAll(".product-card-col"))
+            .map(card => [String(card.dataset.name || "").toLowerCase(), card]));
+        existing.forEach((card, key) => {
+            if (!Object.keys(products).some(name => name.toLowerCase() === key)) card.style.display = "none";
+        });
+        Object.entries(products).forEach(([name, details]) => {
+            const key = name.toLowerCase();
+            if (existing.has(key)) {
+                const card = existing.get(key);
+                card.style.display = "";
+                const nameEl = card.querySelector(".product-name");
+                if (nameEl) nameEl.textContent = name;
+                const priceEl = card.querySelector(".product-price");
+                if (priceEl && details.Price !== undefined) priceEl.textContent = String(details.Price);
+                return;
+            }
             const col = document.createElement("div");
             col.className = "col-6 col-md-4 col-lg-3 product-card-col";
-            col.dataset.name = name.toLowerCase();
+            col.dataset.name = key;
+            const link = document.createElement("a");
+            link.className = "text-decoration-none";
+            link.href = window.location.pathname.replace(/\/products\/?$/, "/products/" + encodeURIComponent(name));
             const card = document.createElement("div");
-            card.className = "card h-100 p-3";
-            const title = document.createElement("strong");
+            card.className = "card h-100 product-catalogue-card p-3";
+            const title = document.createElement("div");
+            title.className = "product-name";
             title.textContent = name;
             const price = document.createElement("div");
-            price.className = "small text-muted";
+            price.className = "product-price";
             price.textContent = String(details.Price || details.price || "");
             const variants = document.createElement("div");
             variants.className = "small text-muted";
-            variants.textContent = (details.variants || []).length + " variants";
+            variants.textContent = (details.variants || []).length + " variants (saved locally)";
             card.append(title, price, variants);
-            col.appendChild(card);
+            link.appendChild(card);
+            col.appendChild(link);
             grid.appendChild(col);
         });
     }
     if (/\/employees\/?$/.test(path)) {
         const body = document.querySelector("table tbody");
         if (!body) return;
-        body.replaceChildren();
-        (snapshot.employees || []).forEach((emp, index) => {
-            const tr = document.createElement("tr");
-            [String(index + 1), emp.name || "", emp.role || "", String(emp.salary ?? 0), "—", String(emp.salary ?? 0), emp.notes || "", "Pending sync"].forEach(value => {
-                const td = document.createElement("td");
-                td.textContent = value;
-                tr.appendChild(td);
-            });
-            body.appendChild(tr);
+        const employees = snapshot.employees || [];
+        const rows = Array.from(body.querySelectorAll("tr"));
+        employees.forEach((emp, index) => {
+            let row = rows[index];
+            if (!row) {
+                row = document.createElement("tr");
+                for (let i = 0; i < 8; i++) row.appendChild(document.createElement("td"));
+                body.appendChild(row);
+            }
+            const cells = row.querySelectorAll("td");
+            if (cells[0]) cells[0].textContent = String(index + 1);
+            if (cells[1]) cells[1].textContent = emp.name || "";
+            if (cells[2]) cells[2].textContent = emp.role || "";
+            if (cells[3]) cells[3].textContent = String(emp.salary ?? 0);
+            if (cells[4]) cells[4].textContent = "—";
+            if (cells[5]) cells[5].textContent = String(emp.salary ?? 0);
+            if (cells[6]) cells[6].textContent = emp.notes || "—";
+            row.style.display = "";
+            row.dataset.offlineEmployee = "true";
+        });
+        rows.slice(employees.length).forEach(row => {
+            // Keep the row's action controls and hide only rows removed from the local snapshot.
+            row.style.display = "none";
         });
     }
 }
