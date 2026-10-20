@@ -1264,6 +1264,7 @@ def api_sync_customer():
         'id': customer_id, 'name': name, 'phone': phone,
         'email': str(data.get('email') or '').strip(),
         'notes': str(data.get('notes') or '').strip(),
+        'dob': str(data.get('dob') or '').strip(),
         'points': 0, 'joined': datetime.date.today().isoformat(), 'purchases': []
     }
     customers.append(customer)
