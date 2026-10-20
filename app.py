@@ -2593,6 +2593,11 @@ def api_offline_snapshot(biz):
                     variant.pop('Cost', None)
 
     customers = crm_mod._load_raw().get(biz, []) if allowed['customers'] else []
+    if customers and allowed['customers'] and crm_mod.points_enabled(biz):
+        customers = [
+            {**customer, 'tier': crm_mod.get_eligible_discount(biz, customer)}
+            for customer in customers
+        ]
     employees = []
     if allowed['employees']:
         employees = [
