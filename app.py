@@ -717,6 +717,11 @@ def add_variant(biz, product):
         flash('You do not have access to Products.', 'danger')
         return redirect(url_for('biz_dashboard', biz=biz))
     businesses = _load_biz()
+    action_id = request.form.get('__offline_action_id', '').strip()
+    if action_id:
+        for product_data in businesses.get(biz, {}).get('products', {}).values():
+            if any(v.get('_offline_action_id') == action_id for v in product_data.get('variants', [])):
+                return redirect(url_for('product_detail', biz=biz, product=product))
     v_name = request.form.get('variant_name', '').strip().title()
     plu = request.form.get('plu', '').strip()
     units_str = request.form.get('units', '0').strip()
@@ -743,6 +748,8 @@ def add_variant(biz, product):
         flash(f'"{v_name}" already exists for {product}.', 'danger')
         return redirect(url_for('product_detail', biz=biz, product=product))
     new_variant = {'name': v_name, 'units': units, 'PLU': plu, 'sold': 0}
+    if action_id:
+        new_variant['_offline_action_id'] = action_id
     # optional own selling price / cost - blank means "same as the product"
     for form_key, key in (('price', 'Price'), ('cost', 'Cost')):
         raw = request.form.get(form_key, '').strip()
