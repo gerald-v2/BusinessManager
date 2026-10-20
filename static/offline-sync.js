@@ -612,6 +612,35 @@ function renderOfflineModule(snapshot) {
             if (cells[4]) cells[4].textContent = "—";
             if (cells[5]) cells[5].textContent = String(emp.salary ?? 0);
             if (cells[6]) cells[6].textContent = emp.notes || "—";
+            if (cells[7] && !cells[7].querySelector("form") && !cells[7].querySelector(".offline-employee-actions")) {
+                const actions = document.createElement("div");
+                actions.className = "offline-employee-actions d-flex gap-1";
+                const edit = document.createElement("button");
+                edit.type = "button"; edit.className = "btn btn-sm btn-outline-secondary"; edit.textContent = "Edit";
+                edit.addEventListener("click", async () => {
+                    const name = prompt("Employee name:", emp.name || ""); if (name === null) return;
+                    const role = prompt("Role:", emp.role || ""); if (role === null) return;
+                    const salary = prompt("Monthly salary:", String(emp.salary ?? 0)); if (salary === null || !Number.isFinite(Number(salary))) return;
+                    const notes = prompt("Notes:", emp.notes || ""); if (notes === null) return;
+                    const form = document.createElement("form");
+                    form.action = "/biz/" + encodeURIComponent(snapshot.biz) + "/employees/" + index + "/edit";
+                    form.method = "POST";
+                    [["name", name], ["role", role], ["salary", salary], ["notes", notes]].forEach(([key, value]) => {
+                        const input = document.createElement("input"); input.name = key; input.value = value; form.appendChild(input);
+                    });
+                    try { await queueFormAction(form); } catch (error) { alert("Could not save employee changes locally."); }
+                });
+                const remove = document.createElement("button");
+                remove.type = "button"; remove.className = "btn btn-sm btn-outline-danger"; remove.textContent = "Remove";
+                remove.addEventListener("click", async () => {
+                    if (!confirm("Remove " + (emp.name || "this employee") + " from the local list?")) return;
+                    const form = document.createElement("form");
+                    form.action = "/biz/" + encodeURIComponent(snapshot.biz) + "/employees/" + index + "/remove";
+                    form.method = "POST";
+                    try { await queueFormAction(form); } catch (error) { alert("Could not remove employee locally."); }
+                });
+                actions.append(edit, remove); cells[7].appendChild(actions);
+            }
             row.style.display = "";
             row.dataset.offlineEmployee = "true";
         });
