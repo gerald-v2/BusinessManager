@@ -127,6 +127,17 @@ async function getSnapshot(biz) {
     });
 }
 
+async function saveSnapshot(snapshot) {
+    if (!snapshot || !snapshot.biz) throw new Error("Invalid offline snapshot");
+    await dbReady;
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("snapshots", "readwrite");
+        tx.objectStore("snapshots").put(snapshot);
+        tx.oncomplete = resolve;
+        tx.onerror = event => reject(event.target.error);
+    });
+}
+
 async function clearSnapshots() {
     await dbReady;
     return new Promise((resolve, reject) => {
@@ -1128,6 +1139,7 @@ window.offlineSync = {
     queueSale,
     refreshSnapshot,
     getSnapshot,
+    saveSnapshot,
     clearSnapshots,
     queueFormAction,
     getQueuedActions,
