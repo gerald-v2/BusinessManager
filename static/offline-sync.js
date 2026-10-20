@@ -392,6 +392,20 @@ async function applyLocalFormAction(action) {
             if (name && !snapshot.products[name]) {
                 snapshot.products[name] = { Price: "$" + Number(data.price || 0).toFixed(2), Cost: "$" + Number(data.cost || 0).toFixed(2), variants: [] };
             }
+        } else if (parts.length === 5 && parts[4] === "add-variant") {
+            const product = snapshot.products[parts[3]];
+            const variantName = String(data.variant_name || "").trim().replace(/\b\w/g, c => c.toUpperCase());
+            const plu = String(data.plu || "").trim();
+            const units = Math.max(0, Number.parseInt(data.units || "0", 10) || 0);
+            const allVariants = Object.values(snapshot.products).flatMap(p => p.variants || []);
+            if (product && variantName && plu && !allVariants.some(v => String(v.PLU || v.plu || "") === plu) &&
+                !(product.variants || []).some(v => String(v.name || "").toLowerCase() === variantName.toLowerCase())) {
+                product.variants = product.variants || [];
+                const variant = { name: variantName, PLU: plu, units, sold: 0 };
+                if (String(data.price || "").trim()) variant.Price = "$" + Number(data.price).toFixed(2);
+                if (String(data.cost || "").trim()) variant.Cost = "$" + Number(data.cost).toFixed(2);
+                product.variants.push(variant);
+            }
         } else if (parts.length === 5 && parts[4] === "edit") {
             const product = snapshot.products[parts[3]];
             if (product) {
@@ -456,6 +470,15 @@ function renderOfflineModule(snapshot) {
                 if (nameEl) nameEl.textContent = name;
                 const priceEl = card.querySelector(".product-price");
                 if (priceEl && details.Price !== undefined) priceEl.textContent = String(details.Price);
+                const col = card.closest(".product-card-col");
+                if (col && !col.querySelector(".offline-add-variant")) {
+                    const addVariant = document.createElement("button");
+                    addVariant.type = "button";
+                    addVariant.className = "btn btn-sm btn-outline-primary mt-2 offline-add-variant";
+                    addVariant.textContent = "Add variant offline";
+                    addVariant.addEventListener("click", () => addOfflineVariant(snapshot.biz, name));
+                    col.appendChild(addVariant);
+                }
                 return;
             }
             const col = document.createElement("div");
@@ -478,6 +501,12 @@ function renderOfflineModule(snapshot) {
             card.append(title, price, variants);
             link.appendChild(card);
             col.appendChild(link);
+            const addVariant = document.createElement("button");
+            addVariant.type = "button";
+            addVariant.className = "btn btn-sm btn-outline-primary mt-2 offline-add-variant";
+            addVariant.textContent = "Add variant offline";
+            addVariant.addEventListener("click", () => addOfflineVariant(snapshot.biz, name));
+            col.appendChild(addVariant);
             grid.appendChild(col);
         });
     }
@@ -525,6 +554,41 @@ function renderOfflineModule(snapshot) {
             // Keep the row's action controls and hide only rows removed from the local snapshot.
             row.style.display = "none";
         });
+    }
+    try {
+        window.dispatchEvent(new CustomEvent("bizmanager:snapshot-updated", { detail: snapshot }));
+    } catch (_) {}
+}
+
+async function addOfflineVariant(biz, productName) {
+    const variantName = prompt("Variant name (e.g. Red 12-inch):");
+    if (!variantName || !variantName.trim()) return;
+    const plu = prompt("Unique PLU / barcode:");
+    if (!plu || !plu.trim()) return;
+    const unitsText = prompt("Opening stock units:", "0");
+    if (unitsText === null || !/^\d+$/.test(unitsText.trim())) {
+        alert("Enter a whole number of units.");
+        return;
+    }
+    const price = prompt("Selling price (leave blank to use product price):", "");
+    if (price === null) return;
+    const cost = prompt("Cost price (optional):", "");
+    if (cost === null) return;
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/biz/" + encodeURIComponent(biz) + "/products/" + encodeURIComponent(productName) + "/add-variant";
+    [["variant_name", variantName.trim()], ["plu", plu.trim()], ["units", unitsText.trim()], ["price", price.trim()], ["cost", cost.trim()]]
+        .forEach(([name, value]) => {
+            const input = document.createElement("input");
+            input.name = name; input.value = value;
+            form.appendChild(input);
+        });
+    try {
+        await queueFormAction(form);
+        alert("Variant saved on this device. It will sync when internet returns.");
+    } catch (error) {
+        console.error("Could not save offline variant.", error);
+        alert("The variant could not be saved locally. Please try again.");
     }
 }
 
