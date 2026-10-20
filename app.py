@@ -1675,6 +1675,7 @@ def employees_add(biz):
     name = request.form.get('name', '').strip().title()
     role = request.form.get('role', '').strip().title()
     notes = request.form.get('notes', '').strip()
+    action_id = request.form.get('__offline_action_id', '').strip()
     try:
         salary = float(request.form.get('salary', '0'))
     except ValueError:
@@ -1686,8 +1687,13 @@ def employees_add(biz):
     data = bf.load_employees()
     if biz not in data:
         data[biz] = []
-    data[biz].append({'name': name, 'role': role, 'salary': salary, 'notes': notes,
-                      'username': '', 'password': '', 'permissions': []})
+    if action_id and any(emp.get('_offline_action_id') == action_id for emp in data[biz]):
+        return redirect(url_for('employees_list', biz=biz))
+    employee = {'name': name, 'role': role, 'salary': salary, 'notes': notes,
+                'username': '', 'password': '', 'permissions': []}
+    if action_id:
+        employee['_offline_action_id'] = action_id
+    data[biz].append(employee)
     bf.save_employees(data)
     flash(f'{name} added.', 'success')
     return redirect(url_for('employees_list', biz=biz))
@@ -1699,10 +1705,21 @@ def employees_edit(biz, emp_idx):
         return r
     data = bf.load_employees()
     emps = data.get(biz, [])
-    if not (0 <= emp_idx < len(emps)):
-        flash('Employee not found.', 'danger')
+    action_id = request.form.get('__offline_action_id', '').strip()
+    if action_id and any(emp.get('_offline_action_id') == action_id for emp in emps):
         return redirect(url_for('employees_list', biz=biz))
-    emp = emps[emp_idx]
+    target_name = request.form.get('__offline_target_name', '').strip()
+    target_role = request.form.get('__offline_target_role', '').strip()
+    if target_name:
+        emp = next((item for item in emps if item.get('name') == target_name and
+                    (not target_role or item.get('role') == target_role)), None)
+        if emp is None:
+            return redirect(url_for('employees_list', biz=biz))
+    else:
+        if not (0 <= emp_idx < len(emps)):
+            flash('Employee not found.', 'danger')
+            return redirect(url_for('employees_list', biz=biz))
+        emp = emps[emp_idx]
     emp['name'] = request.form.get('name', emp['name']).strip().title() or emp['name']
     emp['role'] = request.form.get('role', emp['role']).strip().title() or emp['role']
     emp['notes'] = request.form.get('notes', emp.get('notes', '')).strip()
@@ -1710,6 +1727,8 @@ def employees_edit(biz, emp_idx):
         emp['salary'] = float(request.form.get('salary', str(emp['salary'])))
     except ValueError:
         pass
+    if action_id:
+        emp['_offline_action_id'] = action_id
     bf.save_employees(data)
     flash(f'{emp["name"]} updated.', 'success')
     return redirect(url_for('employees_list', biz=biz))
@@ -1721,8 +1740,18 @@ def employees_remove(biz, emp_idx):
         return r
     data = bf.load_employees()
     emps = data.get(biz, [])
-    if 0 <= emp_idx < len(emps):
-        removed = emps.pop(emp_idx)
+    target_name = request.form.get('__offline_target_name', '').strip()
+    target_role = request.form.get('__offline_target_role', '').strip()
+    if target_name:
+        target_idx = next((i for i, emp in enumerate(emps)
+                           if emp.get('name') == target_name and
+                           (not target_role or emp.get('role') == target_role)), None)
+        if target_idx is None:
+            return redirect(url_for('employees_list', biz=biz))
+    else:
+        target_idx = emp_idx
+    if 0 <= target_idx < len(emps):
+        removed = emps.pop(target_idx)
         bf.save_employees(data)
         flash(f'{removed["name"]} removed.', 'success')
     return redirect(url_for('employees_list', biz=biz))
