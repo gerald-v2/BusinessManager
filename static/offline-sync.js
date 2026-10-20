@@ -385,7 +385,19 @@ async function applyLocalFormAction(action) {
         try { return decodeURIComponent(part); } catch (_) { return part; }
     });
     const module = parts[2];
-    if (module === "products") {
+    if (module === "crm") {
+        snapshot.customers = Array.isArray(snapshot.customers) ? snapshot.customers : [];
+        const index = Number(parts[3]);
+        if (parts.length === 5 && parts[4] === "edit" && snapshot.customers[index]) {
+            const customer = snapshot.customers[index];
+            ["name", "phone", "email", "notes", "dob"].forEach(key => {
+                if (data[key] !== undefined) customer[key] = String(data[key]);
+            });
+        } else if (parts.length === 5 && parts[4] === "remove" &&
+                   index >= 0 && index < snapshot.customers.length) {
+            snapshot.customers.splice(index, 1);
+        }
+    } else if (module === "products") {
         snapshot.products = snapshot.products || {};
         if (parts.length === 4 && parts[3] === "add") {
             const name = String(data.product_name || "").trim().replace(/\b\w/g, c => c.toUpperCase());
@@ -811,7 +823,7 @@ function installOfflineFormQueue() {
             return;
         }
         // Keep POS checkout on its existing, feature-preserving local sale flow.
-        const isProductsOrEmployees = /^\/biz\/[^/]+\/(?:products(?:\/.*)?|employees(?:\/.*)?|attendance\/quick)\/?$/.test(path);
+        const isProductsOrEmployees = /^\/biz\/[^/]+\/(?:products(?:\/.*)?|employees(?:\/.*)?|crm\/[^/]+\/(?:edit|remove)|attendance\/quick)\/?$/.test(path);
         if (!isProductsOrEmployees) return;
         event.preventDefault();
         try {
