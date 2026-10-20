@@ -717,6 +717,11 @@ def add_variant(biz, product):
         flash('You do not have access to Products.', 'danger')
         return redirect(url_for('biz_dashboard', biz=biz))
     businesses = _load_biz()
+    action_id = request.form.get('__offline_action_id', '').strip()
+    if action_id:
+        for product_data in businesses.get(biz, {}).get('products', {}).values():
+            if any(v.get('_offline_action_id') == action_id for v in product_data.get('variants', [])):
+                return redirect(url_for('product_detail', biz=biz, product=product))
     v_name = request.form.get('variant_name', '').strip().title()
     plu = request.form.get('plu', '').strip()
     units_str = request.form.get('units', '0').strip()
@@ -743,6 +748,8 @@ def add_variant(biz, product):
         flash(f'"{v_name}" already exists for {product}.', 'danger')
         return redirect(url_for('product_detail', biz=biz, product=product))
     new_variant = {'name': v_name, 'units': units, 'PLU': plu, 'sold': 0}
+    if action_id:
+        new_variant['_offline_action_id'] = action_id
     # optional own selling price / cost - blank means "same as the product"
     for form_key, key in (('price', 'Price'), ('cost', 'Cost')):
         raw = request.form.get(form_key, '').strip()
@@ -1244,7 +1251,7 @@ def api_sync_customer():
     name = str(data.get('name') or '').strip()
     if not biz or not customer_id or not name:
         return jsonify({'status': 'error', 'error': 'business, customer id and name are required'}), 400
-    if _require_biz_access(biz) or not _can_access(biz, 'pos'):
+    if _require_biz_access(biz) or not (_can_access(biz, 'pos') or _can_access(biz, 'crm')):
         return jsonify({'status': 'error', 'error': 'access denied'}), 403
     raw = crm_mod._load_raw()
     customers = raw.get(biz, [])
@@ -1264,6 +1271,7 @@ def api_sync_customer():
         'id': customer_id, 'name': name, 'phone': phone,
         'email': str(data.get('email') or '').strip(),
         'notes': str(data.get('notes') or '').strip(),
+        'dob': str(data.get('dob') or '').strip(),
         'points': 0, 'joined': datetime.date.today().isoformat(), 'purchases': []
     }
     customers.append(customer)
@@ -1557,6 +1565,22 @@ def crm_edit(biz, idx):
         return r
     raw = crm_mod._load_raw()
     customers = raw.get(biz, [])
+    target_id = request.form.get('__offline_target_id', '').strip()
+    target_name = request.form.get('__offline_target_name', '').strip()
+    target_phone = request.form.get('__offline_target_phone', '').strip()
+    if target_id or target_name:
+        target_idx = None
+        for i, customer in enumerate(customers):
+            if target_id and str(customer.get('id') or '') == target_id:
+                target_idx = i
+                break
+            if (not target_id and customer.get('name') == target_name and
+                    (not target_phone or str(customer.get('phone') or '') == target_phone)):
+                target_idx = i
+                break
+        if target_idx is None:
+            return redirect(url_for('crm', biz=biz))
+        idx = target_idx
     if not (0 <= idx < len(customers)):
         flash('Customer not found.', 'danger')
         return redirect(url_for('crm', biz=biz))
@@ -1577,6 +1601,22 @@ def crm_remove(biz, idx):
         return r
     raw = crm_mod._load_raw()
     customers = raw.get(biz, [])
+    target_id = request.form.get('__offline_target_id', '').strip()
+    target_name = request.form.get('__offline_target_name', '').strip()
+    target_phone = request.form.get('__offline_target_phone', '').strip()
+    if target_id or target_name:
+        target_idx = None
+        for i, customer in enumerate(customers):
+            if target_id and str(customer.get('id') or '') == target_id:
+                target_idx = i
+                break
+            if (not target_id and customer.get('name') == target_name and
+                    (not target_phone or str(customer.get('phone') or '') == target_phone)):
+                target_idx = i
+                break
+        if target_idx is None:
+            return redirect(url_for('crm', biz=biz))
+        idx = target_idx
     if 0 <= idx < len(customers):
         removed = customers.pop(idx)
         crm_mod._save_raw(raw)
@@ -1674,6 +1714,7 @@ def employees_add(biz):
     name = request.form.get('name', '').strip().title()
     role = request.form.get('role', '').strip().title()
     notes = request.form.get('notes', '').strip()
+    action_id = request.form.get('__offline_action_id', '').strip()
     try:
         salary = float(request.form.get('salary', '0'))
     except ValueError:
@@ -1685,8 +1726,13 @@ def employees_add(biz):
     data = bf.load_employees()
     if biz not in data:
         data[biz] = []
-    data[biz].append({'name': name, 'role': role, 'salary': salary, 'notes': notes,
-                      'username': '', 'password': '', 'permissions': []})
+    if action_id and any(emp.get('_offline_action_id') == action_id for emp in data[biz]):
+        return redirect(url_for('employees_list', biz=biz))
+    employee = {'name': name, 'role': role, 'salary': salary, 'notes': notes,
+                'username': '', 'password': '', 'permissions': []}
+    if action_id:
+        employee['_offline_action_id'] = action_id
+    data[biz].append(employee)
     bf.save_employees(data)
     flash(f'{name} added.', 'success')
     return redirect(url_for('employees_list', biz=biz))
@@ -1698,10 +1744,21 @@ def employees_edit(biz, emp_idx):
         return r
     data = bf.load_employees()
     emps = data.get(biz, [])
-    if not (0 <= emp_idx < len(emps)):
-        flash('Employee not found.', 'danger')
+    action_id = request.form.get('__offline_action_id', '').strip()
+    if action_id and any(emp.get('_offline_action_id') == action_id for emp in emps):
         return redirect(url_for('employees_list', biz=biz))
-    emp = emps[emp_idx]
+    target_name = request.form.get('__offline_target_name', '').strip()
+    target_role = request.form.get('__offline_target_role', '').strip()
+    if target_name:
+        emp = next((item for item in emps if item.get('name') == target_name and
+                    (not target_role or item.get('role') == target_role)), None)
+        if emp is None:
+            return redirect(url_for('employees_list', biz=biz))
+    else:
+        if not (0 <= emp_idx < len(emps)):
+            flash('Employee not found.', 'danger')
+            return redirect(url_for('employees_list', biz=biz))
+        emp = emps[emp_idx]
     emp['name'] = request.form.get('name', emp['name']).strip().title() or emp['name']
     emp['role'] = request.form.get('role', emp['role']).strip().title() or emp['role']
     emp['notes'] = request.form.get('notes', emp.get('notes', '')).strip()
@@ -1709,6 +1766,8 @@ def employees_edit(biz, emp_idx):
         emp['salary'] = float(request.form.get('salary', str(emp['salary'])))
     except ValueError:
         pass
+    if action_id:
+        emp['_offline_action_id'] = action_id
     bf.save_employees(data)
     flash(f'{emp["name"]} updated.', 'success')
     return redirect(url_for('employees_list', biz=biz))
@@ -1720,8 +1779,18 @@ def employees_remove(biz, emp_idx):
         return r
     data = bf.load_employees()
     emps = data.get(biz, [])
-    if 0 <= emp_idx < len(emps):
-        removed = emps.pop(emp_idx)
+    target_name = request.form.get('__offline_target_name', '').strip()
+    target_role = request.form.get('__offline_target_role', '').strip()
+    if target_name:
+        target_idx = next((i for i, emp in enumerate(emps)
+                           if emp.get('name') == target_name and
+                           (not target_role or emp.get('role') == target_role)), None)
+        if target_idx is None:
+            return redirect(url_for('employees_list', biz=biz))
+    else:
+        target_idx = emp_idx
+    if 0 <= target_idx < len(emps):
+        removed = emps.pop(target_idx)
         bf.save_employees(data)
         flash(f'{removed["name"]} removed.', 'success')
     return redirect(url_for('employees_list', biz=biz))
@@ -2563,6 +2632,59 @@ def offline_sync():
     return {
         "success": True
     }
+# Read-only snapshot used to prime the device's local offline database.
+@app.route('/api/offline/snapshot/<biz>')
+def api_offline_snapshot(biz):
+    if not session.get('user_type'):
+        return jsonify({'status': 'error', 'error': 'not logged in'}), 401
+    if session.get('user_type') not in ('system_admin',) and session.get('biz') != biz:
+        return jsonify({'status': 'error', 'error': 'access denied'}), 403
+
+    allowed = {
+        'pos': _can_access(biz, 'pos'),
+        'products': _can_access(biz, 'products'),
+        'customers': _can_access(biz, 'crm') or _can_access(biz, 'pos'),
+        'employees': _can_access(biz, 'employees'),
+    }
+    businesses = _load_biz()
+    if biz not in businesses:
+        return jsonify({'status': 'error', 'error': 'business not found'}), 404
+
+    products = {}
+    if allowed['pos'] or allowed['products']:
+        products = businesses.get(biz, {}).get('products', {})
+        # POS-only staff need selling prices and stock, not confidential cost prices.
+        if not allowed['products']:
+            products = json.loads(json.dumps(products))
+            for details in products.values():
+                details.pop('Cost', None)
+                for variant in details.get('variants', []):
+                    variant.pop('Cost', None)
+
+    customers = crm_mod._load_raw().get(biz, []) if allowed['customers'] else []
+    if customers and allowed['customers'] and crm_mod.points_enabled(biz):
+        customers = [
+            {**customer, 'tier': crm_mod.get_eligible_discount(biz, customer)}
+            for customer in customers
+        ]
+    employees = []
+    if allowed['employees']:
+        employees = [
+            {key: emp.get(key) for key in ('name', 'role', 'salary', 'notes')}
+            for emp in bf.load_employees().get(biz, [])
+        ]
+
+    return jsonify({
+        'status': 'ok',
+        'biz': biz,
+        'captured_at': datetime.datetime.now().isoformat(),
+        'points_enabled': bool(crm_mod.points_enabled(biz)),
+        'loyalty_tiers': crm_mod.get_biz_config(biz).get('tiers', []),
+        'products': products,
+        'customers': customers,
+        'employees': employees,
+    })
+
 # Serve the service worker from the site root so it can control /biz/.../pos
 # (a worker served from /static/ can only control URLs under /static/).
 @app.route('/service-worker.js')
