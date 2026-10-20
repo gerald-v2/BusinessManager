@@ -952,6 +952,11 @@ async function syncOfflineData() {
         }
     }
     await updateSyncBadge();
+    if ((await getQueuedActions()).length === 0 && (await getQueuedSales()).length === 0) {
+        await refreshSnapshot(businessFromPath());
+        const snapshot = await getSnapshot(businessFromPath());
+        if (snapshot) renderOfflineModule(snapshot);
+    }
 }
 
 
