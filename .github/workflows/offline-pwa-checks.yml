@@ -24,3 +24,4 @@ jobs:
       - name: Check offline sync JavaScript
         run: node --check static/offline-sync.js
 
+
