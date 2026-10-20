@@ -406,6 +406,23 @@ async function applyLocalFormAction(action) {
                 if (String(data.cost || "").trim()) variant.Cost = "$" + Number(data.cost).toFixed(2);
                 product.variants.push(variant);
             }
+        } else if (parts.length === 5 && parts[4] === "edit-variant") {
+            const product = snapshot.products[parts[3]];
+            const variant = product && (product.variants || []).find(v => String(v.name || "") === String(data.variant_name || ""));
+            if (variant && data.field) {
+                const field = String(data.field);
+                const value = String(data.value ?? "").trim();
+                if (field === "units" && /^\d+$/.test(value)) variant.units = Number(value);
+                if (field === "plu" && value) variant.PLU = value;
+                if (field === "price" || field === "cost") {
+                    const key = field === "price" ? "Price" : "Cost";
+                    if (!value) delete variant[key];
+                    else if (Number.isFinite(Number(value))) variant[key] = "$" + Number(value).toFixed(2);
+                }
+            }
+        } else if (parts.length === 6 && parts[5] === "remove") {
+            const product = snapshot.products[parts[3]];
+            if (product) product.variants = (product.variants || []).filter(v => String(v.name || "") !== parts[4]);
         } else if (parts.length === 5 && parts[4] === "edit") {
             const product = snapshot.products[parts[3]];
             if (product) {
