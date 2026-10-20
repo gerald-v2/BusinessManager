@@ -591,19 +591,23 @@ const BIZ_NAME =
 const POS_CFG = {{ pos_cfg | tojson }};
 
 /* Load the latest local snapshot so cached POS can use updated products offline. */
+function offlineMoney(value) {
+  const parsed = parseFloat(String(value ?? "0").replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 function applyOfflineProductSnapshot(snapshot) {
   if (!snapshot || !snapshot.products || typeof snapshot.products !== "object") return;
   const next = {};
   Object.entries(snapshot.products).forEach(([name, details]) => {
     const variants = Array.isArray(details.variants) ? details.variants : [];
     next[name] = {
-      price: Number(details.Price ?? details.price ?? 0),
+      price: offlineMoney(details.Price ?? details.price ?? 0),
       image: details.image || "",
       variants: variants.map(v => ({
         name: String(v.name || "Default"),
         plu: String(v.PLU ?? v.plu ?? ""),
         units: Math.max(0, Number(v.units ?? v.stock ?? 0)),
-        price: Number(v.Price ?? v.price ?? details.Price ?? details.price ?? 0),
+        price: offlineMoney(v.Price ?? v.price ?? details.Price ?? details.price ?? 0),
         image: v.image || ""
       }))
     };
@@ -640,7 +644,7 @@ function applyOfflineProductSnapshot(snapshot) {
     stock.textContent = "Stock: " + product.variants.reduce((sum, v) => sum + Math.max(0, Number(getLocalStock(v.plu, v.units))), 0);
     const price = document.createElement("span");
     price.className = "small mt-1";
-    const prices = product.variants.map(v => Number(v.price || product.price || 0));
+    const prices = product.variants.map(v => offlineMoney(v.price || product.price || 0));
     const min = prices.length ? Math.min(...prices) : Number(product.price || 0);
     const max = prices.length ? Math.max(...prices) : min;
     price.textContent = CURRENCY_SYMBOL + min.toFixed(2) + (max !== min ? " – " + max.toFixed(2) : "");
