@@ -1569,10 +1569,15 @@ def crm_edit(biz, idx):
     target_name = request.form.get('__offline_target_name', '').strip()
     target_phone = request.form.get('__offline_target_phone', '').strip()
     if target_id or target_name:
-        target_idx = next((i for i, customer in enumerate(customers)
-                           if ((target_id and str(customer.get('id') or '') == target_id) or
-                               (not target_id and customer.get('name') == target_name and
-                                (not target_phone or str(customer.get('phone') or '') == target_phone))), None)
+        target_idx = None
+        for i, customer in enumerate(customers):
+            if target_id and str(customer.get('id') or '') == target_id:
+                target_idx = i
+                break
+            if (not target_id and customer.get('name') == target_name and
+                    (not target_phone or str(customer.get('phone') or '') == target_phone)):
+                target_idx = i
+                break
         if target_idx is None:
             return redirect(url_for('crm', biz=biz))
         idx = target_idx
@@ -1600,10 +1605,15 @@ def crm_remove(biz, idx):
     target_name = request.form.get('__offline_target_name', '').strip()
     target_phone = request.form.get('__offline_target_phone', '').strip()
     if target_id or target_name:
-        target_idx = next((i for i, customer in enumerate(customers)
-                           if ((target_id and str(customer.get('id') or '') == target_id) or
-                               (not target_id and customer.get('name') == target_name and
-                                (not target_phone or str(customer.get('phone') or '') == target_phone))), None)
+        target_idx = None
+        for i, customer in enumerate(customers):
+            if target_id and str(customer.get('id') or '') == target_id:
+                target_idx = i
+                break
+            if (not target_id and customer.get('name') == target_name and
+                    (not target_phone or str(customer.get('phone') or '') == target_phone)):
+                target_idx = i
+                break
         if target_idx is None:
             return redirect(url_for('crm', biz=biz))
         idx = target_idx
