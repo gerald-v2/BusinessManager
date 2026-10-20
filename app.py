@@ -1244,7 +1244,7 @@ def api_sync_customer():
     name = str(data.get('name') or '').strip()
     if not biz or not customer_id or not name:
         return jsonify({'status': 'error', 'error': 'business, customer id and name are required'}), 400
-    if _require_biz_access(biz) or not _can_access(biz, 'pos'):
+    if _require_biz_access(biz) or not (_can_access(biz, 'pos') or _can_access(biz, 'crm')):
         return jsonify({'status': 'error', 'error': 'access denied'}), 403
     raw = crm_mod._load_raw()
     customers = raw.get(biz, [])
