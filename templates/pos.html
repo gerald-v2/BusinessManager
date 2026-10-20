@@ -1614,7 +1614,13 @@ function offlineReceipt(saleId, items, t, d, method, cur, tendered, changePay) {
     pay_currency: cur.code, pay_sym: cur.sym, alt_rate: cur.rate,
     tendered: tendered, change_pay: changePay,
     customer: POS_CFG.customer
-      ? { name: POS_CFG.customer.name, points_earned: 0, points_redeemed: 0, balance: null } : null,
+      ? {
+          name: POS_CFG.customer.name,
+          points_earned: 0,
+          points_redeemed: d.sent === "points" && POS_CFG.customer.tier ? Number(POS_CFG.customer.tier.points || 0) : 0,
+          balance: Math.max(0, Number(POS_CFG.customer.points || 0) -
+            (d.sent === "points" && POS_CFG.customer.tier ? Number(POS_CFG.customer.tier.points || 0) : 0))
+        } : null,
     paper_width: POS_CFG.paper_width, cut: POS_CFG.cut, provisional: true
   };
 }
