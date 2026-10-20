@@ -11,6 +11,8 @@ const CORE_FILES = [
   "/static/offline-sync.js",
   "/static/receipt-printer.js",
   "/static/manifest.json",
+  "/static/icon-192.png",
+  "/static/icon-512.png",
   "/static/attendance-sync.json"
 ];
 const CDN_ASSETS = [
