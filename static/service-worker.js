@@ -84,8 +84,8 @@ function cacheFirst(request) {
 }
 
 function networkFirst(request, cachePage) {
-  return fetch(request).then(response => {
-    if (cachePage && response.ok && response.type === "basic") store(request, response);
+  return fetch(request).then(async response => {
+    if (cachePage && response.ok && response.type === "basic") await store(request, response);
     return response;
   }).catch(async () => {
     const cached = await caches.match(request, { ignoreSearch: true });
