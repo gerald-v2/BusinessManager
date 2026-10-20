@@ -2066,6 +2066,10 @@ document.addEventListener("submit", async function(event) {
 }, true);
 
 window.addEventListener("load", loadOfflinePosSnapshot);
+
+window.addEventListener("bizmanager:snapshot-updated", function(event) {
+  if (event.detail && event.detail.biz === BIZ_NAME) applyOfflineProductSnapshot(event.detail);
+});
 </script>
 <style>
 .product-card:hover {
