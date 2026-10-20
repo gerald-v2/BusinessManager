@@ -376,6 +376,98 @@ async function syncSale(sale) {
 // ------------------------------------------------------------
 // OFFLINE FORM ACTION QUEUE (Products / Employees)
 // ------------------------------------------------------------
+async function applyLocalFormAction(action) {
+    const snapshot = await getSnapshot(action.biz);
+    if (!snapshot) return;
+    const data = Object.fromEntries(action.entries || []);
+    const path = action.url;
+    const parts = path.split("/").filter(Boolean).map(part => {
+        try { return decodeURIComponent(part); } catch (_) { return part; }
+    });
+    const module = parts[2];
+    if (module === "products") {
+        snapshot.products = snapshot.products || {};
+        if (parts.length === 4 && parts[3] === "add") {
+            const name = String(data.product_name || "").trim().replace(/\b\w/g, c => c.toUpperCase());
+            if (name && !snapshot.products[name]) {
+                snapshot.products[name] = { Price: "$" + Number(data.price || 0).toFixed(2), Cost: "$" + Number(data.cost || 0).toFixed(2), variants: [] };
+            }
+        } else if (parts.length === 5 && parts[4] === "edit") {
+            const product = snapshot.products[parts[3]];
+            if (product) {
+                if (data.price !== undefined) product.Price = "$" + Number(data.price || 0).toFixed(2);
+                if (data.cost !== undefined) product.Cost = "$" + Number(data.cost || 0).toFixed(2);
+            }
+        } else if (parts.length === 5 && parts[4] === "remove") {
+            delete snapshot.products[parts[3]];
+        }
+    } else if (module === "employees") {
+        snapshot.employees = Array.isArray(snapshot.employees) ? snapshot.employees : [];
+        if (parts.length === 4 && parts[3] === "add") {
+            const name = String(data.name || "").trim().replace(/\b\w/g, c => c.toUpperCase());
+            const role = String(data.role || "").trim().replace(/\b\w/g, c => c.toUpperCase());
+            if (name && role) snapshot.employees.push({ name, role, salary: Number(data.salary || 0), notes: String(data.notes || "") });
+        } else if (parts.length === 5 && parts[4] === "edit") {
+            const index = Number(parts[3]);
+            if (snapshot.employees[index]) {
+                ["name", "role", "notes"].forEach(key => { if (data[key] !== undefined) snapshot.employees[index][key] = String(data[key]); });
+                if (data.salary !== undefined) snapshot.employees[index].salary = Number(data.salary || 0);
+            }
+        } else if (parts.length === 5 && parts[4] === "remove") {
+            const index = Number(parts[3]);
+            if (index >= 0 && index < snapshot.employees.length) snapshot.employees.splice(index, 1);
+        }
+    }
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction("snapshots", "readwrite");
+        tx.objectStore("snapshots").put(snapshot);
+        tx.oncomplete = resolve;
+        tx.onerror = event => reject(event.target.error);
+    });
+    renderOfflineModule(snapshot);
+}
+
+function renderOfflineModule(snapshot) {
+    const path = window.location.pathname;
+    if (/\/products\/?$/.test(path)) {
+        const grid = document.getElementById("productGrid");
+        if (!grid) return;
+        grid.replaceChildren();
+        Object.entries(snapshot.products || {}).forEach(([name, details]) => {
+            const col = document.createElement("div");
+            col.className = "col-6 col-md-4 col-lg-3 product-card-col";
+            col.dataset.name = name.toLowerCase();
+            const card = document.createElement("div");
+            card.className = "card h-100 p-3";
+            const title = document.createElement("strong");
+            title.textContent = name;
+            const price = document.createElement("div");
+            price.className = "small text-muted";
+            price.textContent = String(details.Price || details.price || "");
+            const variants = document.createElement("div");
+            variants.className = "small text-muted";
+            variants.textContent = (details.variants || []).length + " variants";
+            card.append(title, price, variants);
+            col.appendChild(card);
+            grid.appendChild(col);
+        });
+    }
+    if (/\/employees\/?$/.test(path)) {
+        const body = document.querySelector("table tbody");
+        if (!body) return;
+        body.replaceChildren();
+        (snapshot.employees || []).forEach((emp, index) => {
+            const tr = document.createElement("tr");
+            [String(index + 1), emp.name || "", emp.role || "", String(emp.salary ?? 0), "—", String(emp.salary ?? 0), emp.notes || "", "Pending sync"].forEach(value => {
+                const td = document.createElement("td");
+                td.textContent = value;
+                tr.appendChild(td);
+            });
+            body.appendChild(tr);
+        });
+    }
+}
+
 async function queueFormAction(form) {
     await dbReady;
     const entries = Array.from(new FormData(form).entries()).map(([key, value]) => [key, String(value)]);
@@ -394,6 +486,7 @@ async function queueFormAction(form) {
         tx.oncomplete = resolve;
         tx.onerror = event => reject(event.target.error);
     });
+    await applyLocalFormAction(action);
     await updateSyncBadge();
     return action;
 }
@@ -717,6 +810,9 @@ window.addEventListener(
         await dbReady;
 
         await updateSyncBadge();
+
+        const savedSnapshot = await getSnapshot(businessFromPath());
+        if (savedSnapshot) renderOfflineModule(savedSnapshot);
 
         if (navigator.onLine) {
             await refreshSnapshot(businessFromPath());
