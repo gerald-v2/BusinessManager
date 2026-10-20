@@ -1,0 +1,27 @@
+name: Offline PWA checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - feature/full-offline-pwa
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Check Python syntax
+        run: python -m py_compile app.py
+      - name: Check service worker JavaScript
+        run: node --check static/service-worker.js
+      - name: Check offline sync JavaScript
+        run: node --check static/offline-sync.js
+
+
