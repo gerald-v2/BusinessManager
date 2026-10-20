@@ -2679,6 +2679,7 @@ def api_offline_snapshot(biz):
         'biz': biz,
         'captured_at': datetime.datetime.now().isoformat(),
         'points_enabled': bool(crm_mod.points_enabled(biz)),
+        'loyalty_tiers': crm_mod.get_biz_config(biz).get('tiers', []),
         'products': products,
         'customers': customers,
         'employees': employees,
