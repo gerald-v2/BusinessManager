@@ -938,32 +938,22 @@ function setLocalStock(
   );
 }
 function updateStockDisplay() {
-  if (!selectedVariant) {
-    return;
-  }
-  const localStock =
-    getLocalStock(
-      selectedVariant.plu,
-      selectedVariant.units
-    );
-  document.getElementById(
-    "stockInfo"
-  ).innerHTML = `
+  if (!selectedVariant) return;
+  const localStock = getLocalStock(selectedVariant.plu, selectedVariant.units);
+  document.getElementById("stockInfo").innerHTML = `
     <span class="badge bg-light text-dark border">
       <i class="bi bi-box me-1"></i>
       ${localStock} in stock
     </span>
   `;
-  document.getElementById(
-    "modalQty"
-  ).max =
-    localStock;
-  if (localStock <= 0) {
-    document.getElementById(
-      "addBtn"
-    ).disabled =
-      true;
+  const qtyInput = document.getElementById("modalQty");
+  if (qtyInput) {
+    qtyInput.max = localStock;
+    if (Number(qtyInput.value || 1) > localStock) qtyInput.value = Math.max(1, localStock);
   }
+  // Re-enable the button when switching from an out-of-stock variant to one in stock.
+  const addButton = document.getElementById("addBtn");
+  if (addButton) addButton.disabled = localStock <= 0;
 }
 /* ============================================================
    CHANGE QUANTITY
@@ -1670,7 +1660,7 @@ async function completeOfflineCapableSale() {
     client_total: t.total
   };
   const finish = async function (receipt, offline = false) {
-    applyLocalStockChanges(items);
+    await applyLocalStockChanges(items);
     if (offline && d.sent === "points" && POS_CFG.customer && POS_CFG.customer.tier) {
       await applyOfflineLoyaltyRedemption();
     }
@@ -1751,26 +1741,64 @@ async function applyOfflineLoyaltyRedemption() {
 /* ============================================================
    LOCAL STOCK CHANGES
 ============================================================ */
-function applyLocalStockChanges(
-  items
-) {
-  items.forEach(
-    item => {
-      const current =
-        getLocalStock(
-          item.plu,
-          0
-        );
-      setLocalStock(
-        item.plu,
-        Math.max(
-          0,
-          current -
-          item.qty
-        )
-      );
-    }
+async function applyLocalStockChanges(items) {
+  const stockByPlu = JSON.parse(
+    localStorage.getItem("bizmanager_stock_" + BIZ_NAME) || "{}"
   );
+  const soldByPlu = new Map();
+
+  // First aggregate quantities by PLU so the same variant cannot be decremented twice
+  // inconsistently when a cart contains repeated lines for it.
+  items.forEach(item => {
+    const plu = String(item.plu ?? "").trim();
+    if (!plu) return;
+    soldByPlu.set(plu, (soldByPlu.get(plu) || 0) + Math.max(0, Number(item.qty) || 0));
+  });
+
+  soldByPlu.forEach((qty, plu) => {
+    let variant = null;
+    for (const product of Object.values(PRODUCTS || {})) {
+      variant = (product.variants || []).find(v => String(v.plu ?? v.PLU ?? "").trim() === plu);
+      if (variant) break;
+    }
+    // Never default to zero when there is no local override: use the product's real
+    // cached stock as the starting point. This was the cause of stock suddenly
+    // appearing as zero after the first sale.
+    const fallbackStock = variant ? Number(variant.units ?? variant.stock ?? 0) : 0;
+    const current = stockByPlu[plu] === undefined
+      ? Math.max(0, Number(fallbackStock) || 0)
+      : Math.max(0, Number(stockByPlu[plu]) || 0);
+    const next = Math.max(0, current - qty);
+    stockByPlu[plu] = next;
+    if (variant) variant.units = next;
+  });
+
+  localStorage.setItem("bizmanager_stock_" + BIZ_NAME, JSON.stringify(stockByPlu));
+
+  // Keep the shared offline snapshot in step with the POS, so the Products page
+  // doesn't continue displaying pre-sale stock on this device.
+  try {
+    if (window.offlineSync && typeof window.offlineSync.getSnapshot === "function") {
+      const snapshot = await window.offlineSync.getSnapshot(BIZ_NAME);
+      if (snapshot && snapshot.products) {
+        soldByPlu.forEach((qty, plu) => {
+          for (const details of Object.values(snapshot.products)) {
+            const variant = (details.variants || []).find(v => String(v.PLU ?? v.plu ?? "").trim() === plu);
+            if (!variant) continue;
+            const current = Math.max(0, Number(variant.units ?? variant.stock ?? 0) || 0);
+            variant.units = Math.max(0, current - qty);
+            if ("stock" in variant) variant.stock = variant.units;
+            break;
+          }
+        });
+        await window.offlineSync.saveSnapshot(snapshot);
+      }
+    }
+  } catch (error) {
+    console.warn("Could not update the local product snapshot after sale.", error);
+  }
+
+  if (selectedVariant) updateStockDisplay();
 }
 /* ============================================================
    OFFLINE INDICATOR
