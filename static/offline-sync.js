@@ -600,6 +600,13 @@ async function syncQueuedActions() {
         }
     }
     await updateSyncBadge();
+    // Replace optimistic local state with the server's authoritative snapshot
+    // only after every queued action has been acknowledged.
+    if (navigator.onLine && (await getQueuedActions()).length === 0) {
+        await refreshSnapshot(businessFromPath());
+        const latest = await getSnapshot(businessFromPath());
+        if (latest) renderOfflineModule(latest);
+    }
 }
 
 function installOfflineFormQueue() {
@@ -614,7 +621,7 @@ function installOfflineFormQueue() {
         event.preventDefault();
         try {
             await queueFormAction(form);
-            alert("Saved on this device and queued to sync when internet returns. The displayed list may not update until the change syncs.");
+            alert("Saved on this device and queued to sync when internet returns.");
         } catch (error) {
             console.error("Could not queue offline change:", error);
             alert("BizManager could not save this change locally. Please keep this page open and try again.");
