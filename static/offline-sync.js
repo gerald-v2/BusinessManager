@@ -430,8 +430,17 @@ async function applyLocalFormAction(action) {
 function renderOfflineModule(snapshot) {
     const path = window.location.pathname;
     if (/\/products\/?$/.test(path)) {
-        const grid = document.getElementById("productGrid");
-        if (!grid) return;
+        let grid = document.getElementById("productGrid");
+        if (!grid) {
+            const header = document.querySelector("main .d-flex.justify-content-between, .container .d-flex.justify-content-between, .d-flex.justify-content-between.mb-4");
+            if (!header) return;
+            const empty = document.querySelector(".card.text-center");
+            if (empty) empty.style.display = "none";
+            grid = document.createElement("div");
+            grid.id = "productGrid";
+            grid.className = "row g-3";
+            header.insertAdjacentElement("afterend", grid);
+        }
         const products = snapshot.products || {};
         const existing = new Map(Array.from(grid.querySelectorAll(".product-card-col"))
             .map(card => [String(card.dataset.name || "").toLowerCase(), card]));
@@ -473,8 +482,25 @@ function renderOfflineModule(snapshot) {
         });
     }
     if (/\/employees\/?$/.test(path)) {
-        const body = document.querySelector("table tbody");
-        if (!body) return;
+        let body = document.querySelector("table tbody");
+        if (!body) {
+            const header = document.querySelector(".d-flex.justify-content-between.mb-3");
+            if (!header) return;
+            const empty = document.querySelector(".card.text-center");
+            if (empty) empty.style.display = "none";
+            const card = document.createElement("div");
+            card.className = "card";
+            const cardBody = document.createElement("div");
+            cardBody.className = "card-body p-0";
+            const table = document.createElement("table");
+            table.className = "table table-hover mb-0";
+            const tbody = document.createElement("tbody");
+            table.appendChild(tbody);
+            cardBody.appendChild(table);
+            card.appendChild(cardBody);
+            header.insertAdjacentElement("afterend", card);
+            body = tbody;
+        }
         const employees = snapshot.employees || [];
         const rows = Array.from(body.querySelectorAll("tr"));
         employees.forEach((emp, index) => {
