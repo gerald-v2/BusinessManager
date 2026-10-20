@@ -2014,6 +2014,12 @@ function renderOfflineLinkedCustomer(customer) {
     points.className = "badge bg-warning text-dark ms-2";
     points.textContent = String(customer.points || 0) + " pts";
     info.appendChild(points);
+    if (customer.tier) {
+      const tier = document.createElement("span");
+      tier.className = "badge bg-primary ms-1";
+      tier.textContent = customer.tier.label + " — " + customer.tier.discount_pct + "% off";
+      info.appendChild(tier);
+    }
   }
   if (customer.phone) {
     const phone = document.createElement("div");
