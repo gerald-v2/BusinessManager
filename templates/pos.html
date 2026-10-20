@@ -654,6 +654,39 @@ function applyOfflineProductSnapshot(snapshot) {
   });
 }
 
+async function migrateLegacyPosStockCache(snapshot) {
+  const versionKey = "bizmanager_stock_cache_version_" + BIZ_NAME;
+  if (localStorage.getItem(versionKey) === "2" || !snapshot || !snapshot.products) return;
+
+  // Earlier POS versions could save zero as the stock fallback even when a variant
+  // was still in stock. Rebuild once from the latest snapshot, subtracting only
+  // sales still waiting in the offline queue so pending sales remain reserved.
+  const remainingByPlu = {};
+  Object.values(snapshot.products).forEach(details => {
+    (details.variants || []).forEach(variant => {
+      const plu = String(variant.PLU ?? variant.plu ?? "").trim();
+      if (plu) remainingByPlu[plu] = Math.max(0, Number(variant.units ?? variant.stock ?? 0) || 0);
+    });
+  });
+
+  try {
+    const queuedSales = typeof window.offlineSync.getQueuedSales === "function"
+      ? await window.offlineSync.getQueuedSales()
+      : [];
+    queuedSales.forEach(sale => {
+      (sale.items || []).forEach(item => {
+        const plu = String(item.plu ?? item.PLU ?? "").trim();
+        if (!plu || remainingByPlu[plu] === undefined) return;
+        remainingByPlu[plu] = Math.max(0, remainingByPlu[plu] - Math.max(0, Number(item.qty) || 0));
+      });
+    });
+    localStorage.setItem("bizmanager_stock_" + BIZ_NAME, JSON.stringify(remainingByPlu));
+    localStorage.setItem(versionKey, "2");
+  } catch (error) {
+    console.warn("Could not migrate the old POS stock cache; it will retry next time.", error);
+  }
+}
+
 async function loadOfflinePosSnapshot() {
   if (!window.offlineSync || !window.offlineSync.getSnapshot) return;
   try {
@@ -661,7 +694,10 @@ async function loadOfflinePosSnapshot() {
       await window.offlineSync.refreshSnapshot(BIZ_NAME);
     }
     const snapshot = await window.offlineSync.getSnapshot(BIZ_NAME);
-    if (snapshot) applyOfflineProductSnapshot(snapshot);
+    if (snapshot) {
+      await migrateLegacyPosStockCache(snapshot);
+      applyOfflineProductSnapshot(snapshot);
+    }
     const customers = await window.offlineSync.getCustomers();
     if (!POS_CFG.customer && customers.length) {
       // Customer selection remains optional; don't silently link a customer.
