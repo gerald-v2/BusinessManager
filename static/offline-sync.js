@@ -714,6 +714,19 @@ async function queueFormAction(form) {
         created_at: new Date().toISOString(),
         synced: false
     };
+    action.entries.push(["__offline_action_id", action.id]);
+    const pathParts = action.url.split("/").filter(Boolean).map(part => {
+        try { return decodeURIComponent(part); } catch (_) { return part; }
+    });
+    if (pathParts[2] === "employees" && /^\d+$/.test(pathParts[3] || "") &&
+        ["edit", "remove"].includes(pathParts[4])) {
+        const snapshot = await getSnapshot(action.biz);
+        const employee = snapshot && snapshot.employees && snapshot.employees[Number(pathParts[3])];
+        if (employee) {
+            action.entries.push(["__offline_target_name", String(employee.name || "")]);
+            action.entries.push(["__offline_target_role", String(employee.role || "")]);
+        }
+    }
     await new Promise((resolve, reject) => {
         const tx = db.transaction("actions", "readwrite");
         tx.objectStore("actions").put(action);
