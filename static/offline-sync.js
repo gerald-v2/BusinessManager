@@ -544,7 +544,8 @@ function renderOfflineModule(snapshot) {
             const thead = document.createElement("thead");
             thead.className = "table-light";
             const headRow = document.createElement("tr");
-            ["Name", "Phone", "Email", "Joined", "Points", "Purchases", ""].forEach(label => {
+            const headers = ["Name", "Phone", "Email", "Joined"].concat(snapshot.points_enabled ? ["Points"] : [], ["Purchases", ""]);
+            headers.forEach(label => {
                 const th = document.createElement("th"); th.textContent = label; headRow.appendChild(th);
             });
             thead.appendChild(headRow);
@@ -553,18 +554,21 @@ function renderOfflineModule(snapshot) {
             header.insertAdjacentElement("afterend", card);
         }
         const rows = Array.from(body.querySelectorAll("tr"));
+        const headerLabels = Array.from(document.querySelectorAll("table thead th")).map(th => th.textContent.trim().toLowerCase());
+        const hasPoints = headerLabels.includes("points") || Boolean(snapshot.points_enabled);
         customers.forEach((customer, index) => {
             let row = rows[index];
             if (!row) { row = document.createElement("tr"); body.appendChild(row); }
             const values = [customer.name || "", customer.phone || "—", customer.email || "—",
-                customer.joined || "Pending sync", String(customer.points || 0) + " pts",
-                String((customer.purchases || []).length)];
-            while (row.children.length < 7) row.appendChild(document.createElement("td"));
+                customer.joined || "Pending sync"];
+            if (hasPoints) values.push(String(customer.points || 0) + " pts");
+            values.push(String((customer.purchases || []).length));
+            while (row.children.length < values.length + 1) row.appendChild(document.createElement("td"));
             values.forEach((value, cellIndex) => {
                 const cell = row.children[cellIndex];
                 cell.textContent = value;
             });
-            const actionCell = row.children[6];
+            const actionCell = row.children[values.length];
             actionCell.replaceChildren();
             const link = document.createElement("a");
             link.className = "btn btn-sm btn-outline-primary";
