@@ -1734,18 +1734,7 @@ async function applyOfflineLoyaltyRedemption() {
         customer.tier = tiers.find(tier => customer.points >= Number(tier.points || 0)) || null;
         saved.tier = customer.tier;
       }
-      const txResult = await new Promise((resolve, reject) => {
-        const request = indexedDB.open("BusinessManagerOffline", 4);
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-          const db = request.result;
-          if (!db.objectStoreNames.contains("snapshots")) { db.close(); resolve(false); return; }
-          const tx = db.transaction("snapshots", "readwrite");
-          tx.objectStore("snapshots").put(snapshot);
-          tx.oncomplete = () => { db.close(); resolve(true); };
-          tx.onerror = event => { db.close(); reject(event.target.error); };
-        };
-      });
+      await window.offlineSync.saveSnapshot(snapshot);
     }
     renderOfflineLinkedCustomer(customer);
   } catch (error) {
