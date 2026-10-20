@@ -2610,6 +2610,7 @@ def api_offline_snapshot(biz):
         'status': 'ok',
         'biz': biz,
         'captured_at': datetime.datetime.now().isoformat(),
+        'points_enabled': bool(crm_mod.points_enabled(biz)),
         'products': products,
         'customers': customers,
         'employees': employees,
