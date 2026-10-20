@@ -23,3 +23,4 @@ jobs:
         run: node --check static/service-worker.js
       - name: Check offline sync JavaScript
         run: node --check static/offline-sync.js
+
