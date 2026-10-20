@@ -527,6 +527,54 @@ function renderOfflineModule(snapshot) {
             grid.appendChild(col);
         });
     }
+    if (/\/crm(?:\/.*)?\/?$/.test(path) && /\/crm\/?$/.test(path)) {
+        const customers = snapshot.customers || [];
+        let body = document.querySelector("table tbody");
+        if (!body) {
+            const header = document.querySelector(".d-flex.justify-content-between.mb-4");
+            if (!header) return;
+            const empty = document.querySelector(".card.text-center");
+            if (empty) empty.style.display = "none";
+            const card = document.createElement("div");
+            card.className = "card";
+            const responsive = document.createElement("div");
+            responsive.className = "table-responsive";
+            const table = document.createElement("table");
+            table.className = "table table-hover mb-0";
+            const thead = document.createElement("thead");
+            thead.className = "table-light";
+            const headRow = document.createElement("tr");
+            ["Name", "Phone", "Email", "Joined", "Points", "Purchases", ""].forEach(label => {
+                const th = document.createElement("th"); th.textContent = label; headRow.appendChild(th);
+            });
+            thead.appendChild(headRow);
+            body = document.createElement("tbody");
+            table.append(thead, body); responsive.appendChild(table); card.appendChild(responsive);
+            header.insertAdjacentElement("afterend", card);
+        }
+        const rows = Array.from(body.querySelectorAll("tr"));
+        customers.forEach((customer, index) => {
+            let row = rows[index];
+            if (!row) { row = document.createElement("tr"); body.appendChild(row); }
+            const values = [customer.name || "", customer.phone || "—", customer.email || "—",
+                customer.joined || "Pending sync", String(customer.points || 0) + " pts",
+                String((customer.purchases || []).length)];
+            while (row.children.length < 7) row.appendChild(document.createElement("td"));
+            values.forEach((value, cellIndex) => {
+                const cell = row.children[cellIndex];
+                cell.textContent = value;
+            });
+            const actionCell = row.children[6];
+            actionCell.replaceChildren();
+            const link = document.createElement("a");
+            link.className = "btn btn-sm btn-outline-primary";
+            link.href = "/biz/" + encodeURIComponent(snapshot.biz) + "/crm/" + index;
+            link.textContent = "View";
+            actionCell.appendChild(link);
+            row.style.display = "";
+        });
+        rows.slice(customers.length).forEach(row => { row.style.display = "none"; });
+    }
     if (/\/employees\/?$/.test(path)) {
         let body = document.querySelector("table tbody");
         if (!body) {
@@ -696,6 +744,39 @@ function installOfflineFormQueue() {
         if (!(form instanceof HTMLFormElement) || navigator.onLine) return;
         if ((form.method || "get").toUpperCase() !== "POST") return;
         const path = new URL(form.action, window.location.origin).pathname;
+        if (!navigator.onLine && /\/biz\/[^/]+\/crm\/add\/?$/.test(path)) {
+            event.preventDefault();
+            try {
+                const values = Object.fromEntries(new FormData(form).entries());
+                const match = path.match(/^\/biz\/([^/]+)\/crm\/add\/?$/);
+                const biz = match ? decodeURIComponent(match[1]) : businessFromPath();
+                const customer = await saveCustomer({
+                    id: generateSaleId(), biz, name: String(values.name || "").trim(),
+                    phone: String(values.phone || "").trim(), email: String(values.email || "").trim(),
+                    notes: String(values.notes || "").trim(), dob: String(values.dob || ""),
+                    points: 0, purchases: [], joined: new Date().toISOString().slice(0, 10)
+                });
+                const snapshot = await getSnapshot(biz);
+                if (snapshot) {
+                    snapshot.customers = snapshot.customers || [];
+                    if (!snapshot.customers.some(c => c.id === customer.id)) snapshot.customers.push(customer);
+                    await new Promise((resolve, reject) => {
+                        const tx = db.transaction("snapshots", "readwrite");
+                        tx.objectStore("snapshots").put(snapshot);
+                        tx.oncomplete = resolve;
+                        tx.onerror = event => reject(event.target.error);
+                    });
+                    renderOfflineModule(snapshot);
+                    window.dispatchEvent(new CustomEvent("bizmanager:snapshot-updated", { detail: snapshot }));
+                }
+                form.reset();
+                alert("Customer saved on this device and queued to sync when internet returns.");
+            } catch (error) {
+                console.error("Offline CRM customer save failed.", error);
+                alert("Customer could not be saved locally. Please try again.");
+            }
+            return;
+        }
         // Keep POS checkout on its existing, feature-preserving local sale flow.
         const isProductsOrEmployees = /^\/biz\/[^/]+\/(?:products(?:\/.*)?|employees(?:\/.*)?|attendance\/quick)\/?$/.test(path);
         if (!isProductsOrEmployees) return;
