@@ -1663,8 +1663,11 @@ async function completeOfflineCapableSale() {
     pay_currency: cur.code,
     client_total: t.total
   };
-  const finish = function (receipt) {
+  const finish = async function (receipt, offline = false) {
     applyLocalStockChanges(items);
+    if (offline && d.sent === "points" && POS_CFG.customer && POS_CFG.customer.tier) {
+      await applyOfflineLoyaltyRedemption();
+    }
     POS_CART = {};
     saveCart();
     bootstrap.Modal.getInstance(document.getElementById("offlineCheckoutModal")).hide();
@@ -1707,7 +1710,7 @@ async function completeOfflineCapableSale() {
         pay_currency: cur.code, client_total: t.total }
     );
     await window.offlineSync.updateSyncBadge();
-    finish(offlineReceipt(saleId, items, t, d, method, cur, tendered, changePay));
+    await finish(offlineReceipt(saleId, items, t, d, method, cur, tendered, changePay), true);
   } catch (error) {
     console.error("Offline sale failed:", error);
     alert("Could not save the sale on this device. Please do not close this page and try again.");
@@ -1715,6 +1718,40 @@ async function completeOfflineCapableSale() {
   }
 }
 
+
+async function applyOfflineLoyaltyRedemption() {
+  try {
+    const customer = POS_CFG.customer;
+    const cost = Number(customer && customer.tier && customer.tier.points || 0);
+    if (!customer || cost <= 0) return;
+    customer.points = Math.max(0, Number(customer.points || 0) - cost);
+    const snapshot = await window.offlineSync.getSnapshot(BIZ_NAME);
+    if (snapshot) {
+      const saved = (snapshot.customers || []).find(c => c.name === customer.name);
+      if (saved) {
+        saved.points = customer.points;
+        const tiers = (snapshot.loyalty_tiers || []).slice().sort((a, b) => Number(b.points || 0) - Number(a.points || 0));
+        customer.tier = tiers.find(tier => customer.points >= Number(tier.points || 0)) || null;
+        saved.tier = customer.tier;
+      }
+      const txResult = await new Promise((resolve, reject) => {
+        const request = indexedDB.open("BusinessManagerOffline", 4);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains("snapshots")) { db.close(); resolve(false); return; }
+          const tx = db.transaction("snapshots", "readwrite");
+          tx.objectStore("snapshots").put(snapshot);
+          tx.oncomplete = () => { db.close(); resolve(true); };
+          tx.onerror = event => { db.close(); reject(event.target.error); };
+        };
+      });
+    }
+    renderOfflineLinkedCustomer(customer);
+  } catch (error) {
+    console.warn("Offline loyalty redemption will reconcile during sync.", error);
+  }
+}
 
 /* ============================================================
    LOCAL STOCK CHANGES
