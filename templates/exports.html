@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Reports &amp; Exports — {{ biz }}{% endblock %}
+
+{% macro row(icon, color, title, sub, endpoint, scope='all', extra={}) %}
+  <a class="exp-row" data-scope="{{ scope }}" data-base="{{ url_for(endpoint, biz=biz) }}"
+     data-extra="{% for k, v in extra.items() %}{{ k }}={{ v }}{% if not loop.last %}&amp;{% endif %}{% endfor %}"
+     href="{{ url_for(endpoint, biz=biz, period=period, date=anchor, **extra) if scope != 'all' else url_for(endpoint, biz=biz, **extra) }}">
+    <span class="exp-icon" style="background:{{ color }}"><i class="bi {{ icon }}"></i></span>
+    <span>
+      <span class="exp-title d-block">{{ title }}</span>
+      <span class="exp-sub d-block">{{ sub }}</span>
+    </span>
+    <i class="bi bi-cloud-arrow-down exp-go"></i>
+  </a>
+{% endmacro %}
+
+{% block content %}
+<div class="mb-3">
+  <h4 class="mb-1">Reports &amp; Exports</h4>
+  <div class="text-muted">Download any report as a CSV file. It opens in Excel and Google Sheets.</div>
+</div>
+
+<!-- period picker (applies to every report marked "selected period") -->
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-12 col-md-auto">
+        <label class="form-label d-block">Period</label>
+        <div class="seg" id="seg">
+          <button type="button" data-p="daily"   class="{{ 'on' if period == 'daily' }}">Daily</button>
+          <button type="button" data-p="weekly"  class="{{ 'on' if period == 'weekly' }}">Weekly</button>
+          <button type="button" data-p="monthly" class="{{ 'on' if period == 'monthly' }}">Monthly</button>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-auto">
+        <label class="form-label" for="expDate">Date</label>
+        <input type="date" id="expDate" class="form-control" value="{{ anchor }}">
+      </div>
+      <div class="col-12 col-md">
+        <div class="form-label mb-0">Covers</div>
+        <div class="fw-semibold" id="expRange">{{ start.isoformat() }}{% if start != end %} to {{ end.isoformat() }}{% endif %}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if allowed.employees %}
+<section class="exp-section" id="employees">
+  <div class="ios-group-label">Team &amp; Employees</div>
+  <div class="card overflow-hidden"><div>
+    {{ row('bi-clock-history', '#007AFF', 'Timesheet', 'Every clock-in and clock-out — selected period', 'export_attendance', 'period', {'view':'detail'}) }}
+    {{ row('bi-calendar-check', '#5856D6', 'Attendance summary', 'Days worked and total hours per employee — selected period', 'export_attendance', 'period', {'view':'summary'}) }}
+    {{ row('bi-cash-coin', '#34C759', 'Payroll', 'Salary, advances owed, net pay and hours — month of the selected date', 'export_payroll', 'period') }}
+    {{ row('bi-wallet2', '#FF9500', 'Salary advances', 'All advances and whether they are repaid', 'export_advances') }}
+    {{ row('bi-airplane', '#32ADE6', 'Leave records', 'All leave requests', 'export_leave') }}
+    {{ row('bi-person-vcard', '#0A2540', 'Staff list', 'Names, roles, salaries and access (no passwords)', 'export_staff') }}
+  </div></div>
+</section>
+{% endif %}
+
+{% if allowed.finance %}
+<section class="exp-section" id="sales">
+  <div class="ios-group-label">Sales</div>
+  <div class="card overflow-hidden"><div>
+    {{ row('bi-receipt', '#007AFF', 'Sales receipts', 'One line per sale — selected period', 'export_sales', 'period', {'view':'receipts'}) }}
+    {{ row('bi-bag-check', '#34C759', 'Items sold', 'One line per item sold — selected period', 'export_sales', 'period', {'view':'items'}) }}
+    {{ row('bi-calendar2-week', '#FF9500', 'Daily sales summary', 'Totals per day and payment method, refunds separate — selected period', 'export_daily_summary', 'period') }}
+  </div></div>
+</section>
+{% endif %}
+
+{% if allowed.products %}
+<section class="exp-section" id="inventory">
+  <div class="ios-group-label">Inventory</div>
+  <div class="card overflow-hidden"><div>
+    {{ row('bi-boxes', '#5856D6', 'Stock levels', 'Every variant with price, cost, units, stock value and low-stock status', 'export_stock') }}
+  </div></div>
+</section>
+{% endif %}
+
+{% if allowed.crm %}
+<section class="exp-section" id="customers">
+  <div class="ios-group-label">Customers</div>
+  <div class="card overflow-hidden"><div>
+    {{ row('bi-person-lines-fill', '#32ADE6', 'Customer list', 'Contacts, loyalty points, purchases and total spent', 'export_customers') }}
+  </div></div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var period = "{{ period }}";
+  var seg = document.getElementById('seg');
+  var dateEl = document.getElementById('expDate');
+  var rangeEl = document.getElementById('expRange');
+  var rows = document.querySelectorAll('.exp-row');
+  var DAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function parse(v) { var p = (v || '').split('-'); return new Date(+p[0], (+p[1] || 1) - 1, +p[2] || 1); }
+  function nice(d) { return DAY[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + d.getFullYear(); }
+
+  function refresh() {
+    var d = parse(dateEl.value), label;
+    if (isNaN(d)) { return; }
+    if (period === 'daily') {
+      label = nice(d);
+    } else if (period === 'weekly') {
+      var mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+      var sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+      label = nice(mon) + '  –  ' + nice(sun);
+    } else {
+      label = FULL[d.getMonth()] + ' ' + d.getFullYear();
+    }
+    rangeEl.textContent = label;
+    rows.forEach(function (a) {
+      var q = [];
+      if (a.dataset.scope === 'period') {
+        q.push('period=' + (a.dataset.base.indexOf('payroll') > -1 ? 'monthly' : period));
+        q.push('date=' + encodeURIComponent(dateEl.value));
+      }
+      if (a.dataset.extra) q.push(a.dataset.extra);
+      a.href = a.dataset.base + (q.length ? '?' + q.join('&') : '');
+    });
+    seg.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.p === period); });
+  }
+
+  seg.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    period = b.dataset.p; refresh();
+  });
+  dateEl.addEventListener('change', refresh);
+  refresh();
+
+  /* show the section the user came from (e.g. the Export button on the Team page) first */
+  if (location.hash) {
+    var t = document.querySelector(location.hash + '.exp-section');
+    var first = document.querySelector('.exp-section');
+    if (t && first && t !== first) first.parentNode.insertBefore(t, first);
+  }
+})();
+</script>
+{% endblock %}
